@@ -46,23 +46,6 @@ struct RoleSelectionView: View {
                     .cornerRadius(24)
                 }
                 .buttonStyle(.plain)
-
-                Button {
-                    appVM.selectRole(.demo)
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "rectangle.split.2x1")
-                            .font(.title2)
-                        Text("Split-Screen Demo")
-                            .font(.title3)
-                            .fontWeight(.medium)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color.purple.opacity(0.1))
-                    .cornerRadius(16)
-                }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal, 32)
         }

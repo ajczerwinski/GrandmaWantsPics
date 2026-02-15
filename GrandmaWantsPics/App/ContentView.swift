@@ -5,16 +5,12 @@ struct ContentView: View {
 
     var body: some View {
         if let role = appVM.currentRole {
-            if role == .demo {
-                DemoSplitView()
-            } else if appVM.isPaired {
+            if appVM.isPaired {
                 switch role {
                 case .grandma:
                     GrandmaHomeView()
                 case .adult:
                     AdultInboxView()
-                case .demo:
-                    EmptyView() // handled above
                 }
             } else {
                 PairingView(role: role)
