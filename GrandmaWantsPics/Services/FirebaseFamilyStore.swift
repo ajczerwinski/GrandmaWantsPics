@@ -1,0 +1,253 @@
+import Foundation
+import SwiftUI
+import FirebaseAuth
+import FirebaseFirestore
+import FirebaseStorage
+
+/// Phase 1: Firebase-backed store for real cross-device sync.
+final class FirebaseFamilyStore: FamilyStore {
+
+    private let db = Firestore.firestore()
+    private let storage = Storage.storage()
+    private var requestsListener: ListenerRegistration?
+    private var photosListeners: [String: ListenerRegistration] = [:]
+
+    private var currentUserId: String? { Auth.auth().currentUser?.uid }
+
+    override init() {
+        super.init()
+        // Restore persisted familyId
+        familyId = UserDefaults.standard.string(forKey: "firebase_familyId")
+    }
+
+    // MARK: - Auth
+
+    func ensureSignedIn() async throws {
+        if Auth.auth().currentUser == nil {
+            try await Auth.auth().signInAnonymously()
+        }
+    }
+
+    // MARK: - Family / Pairing
+
+    override func createFamily() async throws -> Family {
+        try await ensureSignedIn()
+        guard let uid = currentUserId else { throw StoreError.notAuthenticated }
+
+        let code = String(format: "%04d", Int.random(in: 1000...9999))
+        let familyRef = db.collection("families").document()
+        let family = Family(
+            id: familyRef.documentID,
+            createdAt: Date(),
+            createdByUserId: uid,
+            pairingCode: code
+        )
+
+        try await familyRef.setData([
+            "createdAt": Timestamp(date: family.createdAt),
+            "createdByUserId": uid,
+            "pairingCode": code
+        ])
+
+        // Add adult connection
+        try await familyRef.collection("connections").addDocument(data: [
+            "userId": uid,
+            "role": "adult",
+            "createdAt": Timestamp(date: Date())
+        ])
+
+        familyId = family.id
+        UserDefaults.standard.set(family.id, forKey: "firebase_familyId")
+        return family
+    }
+
+    override func joinFamily(pairingCode: String) async throws -> Family {
+        try await ensureSignedIn()
+        guard let uid = currentUserId else { throw StoreError.notAuthenticated }
+
+        let snapshot = try await db.collection("families")
+            .whereField("pairingCode", isEqualTo: pairingCode)
+            .limit(to: 1)
+            .getDocuments()
+
+        guard let doc = snapshot.documents.first else {
+            throw StoreError.invalidPairingCode
+        }
+
+        let data = doc.data()
+        let family = Family(
+            id: doc.documentID,
+            createdAt: (data["createdAt"] as? Timestamp)?.dateValue() ?? Date(),
+            createdByUserId: data["createdByUserId"] as? String ?? "",
+            pairingCode: pairingCode
+        )
+
+        // Add grandma connection
+        try await doc.reference.collection("connections").addDocument(data: [
+            "userId": uid,
+            "role": "grandma",
+            "createdAt": Timestamp(date: Date())
+        ])
+
+        familyId = family.id
+        UserDefaults.standard.set(family.id, forKey: "firebase_familyId")
+        return family
+    }
+
+    // MARK: - Requests
+
+    override func createRequest() async throws -> PhotoRequest {
+        try await ensureSignedIn()
+        guard let fid = familyId, let uid = currentUserId else { throw StoreError.notPaired }
+
+        let ref = db.collection("families").document(fid).collection("requests").document()
+        let now = Date()
+
+        try await ref.setData([
+            "createdAt": Timestamp(date: now),
+            "createdByUserId": uid,
+            "fromRole": "grandma",
+            "status": "pending"
+        ])
+
+        return PhotoRequest(
+            id: ref.documentID,
+            familyId: fid,
+            createdAt: now,
+            createdByUserId: uid
+        )
+    }
+
+    override func fulfillRequest(_ requestId: String, imageDataList: [Data]) async throws {
+        try await ensureSignedIn()
+        guard let fid = familyId, let uid = currentUserId else { throw StoreError.notPaired }
+
+        let requestRef = db.collection("families").document(fid)
+            .collection("requests").document(requestId)
+
+        // Upload each photo
+        for data in imageDataList {
+            let photoId = UUID().uuidString
+            let storagePath = "families/\(fid)/requests/\(requestId)/\(photoId).jpg"
+            let storageRef = storage.reference().child(storagePath)
+
+            let metadata = StorageMetadata()
+            metadata.contentType = "image/jpeg"
+            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<StorageMetadata, Error>) in
+                storageRef.putData(data, metadata: metadata) { result, error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                    } else if let result {
+                        continuation.resume(returning: result)
+                    } else {
+                        continuation.resume(throwing: StoreError.notAuthenticated)
+                    }
+                }
+            }
+
+            // Write photo document
+            try await requestRef.collection("photos").document(photoId).setData([
+                "createdAt": Timestamp(date: Date()),
+                "createdByUserId": uid,
+                "storagePath": storagePath
+            ])
+        }
+
+        // Mark request fulfilled
+        try await requestRef.updateData([
+            "status": "fulfilled",
+            "fulfilledAt": Timestamp(date: Date()),
+            "fulfilledByUserId": uid
+        ])
+    }
+
+    // MARK: - Photos
+
+    override func loadImageData(for photo: Photo) async throws -> Data? {
+        let ref = storage.reference().child(photo.storagePath)
+        return try await ref.data(maxSize: 10 * 1024 * 1024)
+    }
+
+    // MARK: - Real-time Listeners
+
+    override func startListening() {
+        guard let fid = familyId else { return }
+
+        requestsListener = db.collection("families").document(fid)
+            .collection("requests")
+            .order(by: "createdAt", descending: true)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let self, let docs = snapshot?.documents else { return }
+
+                let parsed = docs.compactMap { doc -> PhotoRequest? in
+                    let d = doc.data()
+                    return PhotoRequest(
+                        id: doc.documentID,
+                        familyId: fid,
+                        createdAt: (d["createdAt"] as? Timestamp)?.dateValue() ?? Date(),
+                        createdByUserId: d["createdByUserId"] as? String ?? "",
+                        fromRole: d["fromRole"] as? String ?? "grandma",
+                        status: PhotoRequest.Status(rawValue: d["status"] as? String ?? "pending") ?? .pending,
+                        fulfilledAt: (d["fulfilledAt"] as? Timestamp)?.dateValue(),
+                        fulfilledByUserId: d["fulfilledByUserId"] as? String
+                    )
+                }
+
+                DispatchQueue.main.async {
+                    self.requests = parsed
+                    for request in parsed where request.status == .fulfilled {
+                        self.listenForPhotos(requestId: request.id, familyId: fid)
+                    }
+                }
+            }
+    }
+
+    override func stopListening() {
+        requestsListener?.remove()
+        requestsListener = nil
+        photosListeners.values.forEach { $0.remove() }
+        photosListeners.removeAll()
+    }
+
+    private func listenForPhotos(requestId: String, familyId: String) {
+        guard photosListeners[requestId] == nil else { return }
+
+        photosListeners[requestId] = db.collection("families").document(familyId)
+            .collection("requests").document(requestId)
+            .collection("photos")
+            .addSnapshotListener { [weak self] snapshot, _ in
+                guard let self, let docs = snapshot?.documents else { return }
+
+                let parsed = docs.map { doc -> Photo in
+                    let d = doc.data()
+                    return Photo(
+                        id: doc.documentID,
+                        requestId: requestId,
+                        createdAt: (d["createdAt"] as? Timestamp)?.dateValue() ?? Date(),
+                        createdByUserId: d["createdByUserId"] as? String ?? "",
+                        storagePath: d["storagePath"] as? String ?? ""
+                    )
+                }
+
+                DispatchQueue.main.async {
+                    self.allPhotos[requestId] = parsed
+                }
+            }
+    }
+
+    // MARK: - Errors
+
+    enum StoreError: LocalizedError {
+        case notAuthenticated
+        case invalidPairingCode
+        case notPaired
+
+        var errorDescription: String? {
+            switch self {
+            case .notAuthenticated: return "Not signed in."
+            case .invalidPairingCode: return "Invalid pairing code."
+            case .notPaired: return "Not connected to a family yet."
+            }
+        }
+    }
+}

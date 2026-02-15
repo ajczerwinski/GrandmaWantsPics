@@ -1,0 +1,21 @@
+# Firebase credentials
+GoogleService-Info.plist
+
+# Xcode user data
+xcuserdata/
+*.xcuserdatad/
+
+# Build artifacts
+DerivedData/
+build/
+*.ipa
+
+# OS files
+.DS_Store
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Claude Code
+.claude/
