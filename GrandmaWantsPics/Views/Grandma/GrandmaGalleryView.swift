@@ -11,7 +11,11 @@ struct GrandmaGalleryView: View {
     }
 
     private var allPhotos: [Photo] {
-        fulfilledRequests.flatMap { appVM.store.photos(for: $0.id) }
+        let photos = fulfilledRequests.flatMap { appVM.store.photos(for: $0.id) }
+        if appVM.isFreeTier {
+            return photos.filter { !$0.isExpired }
+        }
+        return photos
     }
 
     var body: some View {

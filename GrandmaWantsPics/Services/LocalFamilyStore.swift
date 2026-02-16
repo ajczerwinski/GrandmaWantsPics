@@ -94,6 +94,25 @@ final class LocalFamilyStore: FamilyStore {
         return try Data(contentsOf: url)
     }
 
+    // MARK: - Photo Deletion
+
+    override func deletePhoto(_ photo: Photo, fromRequest requestId: String) async throws {
+        // Remove from in-memory dict
+        allPhotos[requestId]?.removeAll { $0.id == photo.id }
+
+        // Delete local file
+        let fileURL = URL(fileURLWithPath: photo.storagePath)
+        try? FileManager.default.removeItem(at: fileURL)
+
+        saveToDisk()
+    }
+
+    // MARK: - Subscription Tier
+
+    override func updateSubscriptionTier(_ tier: SubscriptionTier) async throws {
+        // No-op for local mode
+    }
+
     // MARK: - Persistence
 
     private var saveURL: URL {

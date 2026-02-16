@@ -46,7 +46,8 @@ final class FirebaseFamilyStore: FamilyStore {
         try await familyRef.setData([
             "createdAt": Timestamp(date: family.createdAt),
             "createdByUserId": uid,
-            "pairingCode": code
+            "pairingCode": code,
+            "subscriptionTier": "free"
         ])
 
         // Add adult connection
@@ -233,6 +234,32 @@ final class FirebaseFamilyStore: FamilyStore {
                     self.allPhotos[requestId] = parsed
                 }
             }
+    }
+
+    // MARK: - Photo Deletion
+
+    override func deletePhoto(_ photo: Photo, fromRequest requestId: String) async throws {
+        guard let fid = familyId else { throw StoreError.notPaired }
+
+        // Delete from Firebase Storage
+        let storageRef = storage.reference().child(photo.storagePath)
+        try await storageRef.delete()
+
+        // Delete Firestore document
+        try await db.collection("families").document(fid)
+            .collection("requests").document(requestId)
+            .collection("photos").document(photo.id)
+            .delete()
+    }
+
+    // MARK: - Subscription Tier
+
+    override func updateSubscriptionTier(_ tier: SubscriptionTier) async throws {
+        guard let fid = familyId else { throw StoreError.notPaired }
+
+        try await db.collection("families").document(fid).updateData([
+            "subscriptionTier": tier.rawValue
+        ])
     }
 
     // MARK: - Errors

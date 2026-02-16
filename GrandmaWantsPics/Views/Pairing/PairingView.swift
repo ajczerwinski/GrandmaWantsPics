@@ -48,6 +48,18 @@ struct PairingView: View {
                     Text("She'll enter it on her device.")
                         .foregroundStyle(.secondary)
                 }
+
+                Button {
+                    appVM.confirmPairing()
+                } label: {
+                    Text("Continue to Inbox")
+                        .font(.title3.bold())
+                        .foregroundStyle(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue.gradient)
+                        .cornerRadius(16)
+                }
             } else {
                 Button {
                     Task {

@@ -3,6 +3,7 @@ import SwiftUI
 struct AdultInboxView: View {
     @EnvironmentObject var appVM: AppViewModel
     @State private var selectedRequest: PhotoRequest?
+    @State private var showSubscriptionSheet = false
 
     var body: some View {
         NavigationStack {
@@ -14,26 +15,55 @@ struct AdultInboxView: View {
                         description: Text("When Grandma taps her button,\nher request will appear here.")
                     )
                 } else {
-                    List(appVM.store.requests) { request in
-                        Button {
-                            selectedRequest = request
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Photo Request")
-                                        .font(.headline)
-                                    Text(request.createdAt.formatted(date: .abbreviated, time: .shortened))
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
+                    List {
+                        if appVM.isFreeTier {
+                            Section {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "clock.badge.exclamationmark")
+                                        .foregroundStyle(.orange)
+                                        .font(.title3)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Photos expire after 30 days")
+                                            .font(.subheadline.bold())
+                                        Text("Upgrade to Premium to keep them forever.")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Button("Upgrade") {
+                                        showSubscriptionSheet = true
+                                    }
+                                    .font(.caption.bold())
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(.pink)
                                 }
-
-                                Spacer()
-
-                                StatusBadge(status: request.status)
+                                .padding(.vertical, 4)
                             }
-                            .padding(.vertical, 4)
                         }
-                        .buttonStyle(.plain)
+
+                        Section {
+                            ForEach(appVM.store.requests) { request in
+                                Button {
+                                    selectedRequest = request
+                                } label: {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text("Photo Request")
+                                                .font(.headline)
+                                            Text(request.createdAt.formatted(date: .abbreviated, time: .shortened))
+                                                .font(.subheadline)
+                                                .foregroundStyle(.secondary)
+                                        }
+
+                                        Spacer()
+
+                                        StatusBadge(status: request.status)
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
                     }
                 }
             }
@@ -41,6 +71,18 @@ struct AdultInboxView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
+                        Button {
+                            showSubscriptionSheet = true
+                        } label: {
+                            if appVM.isFreeTier {
+                                Label("Upgrade to Premium", systemImage: "star")
+                            } else {
+                                Label("Manage Subscription", systemImage: "star.fill")
+                            }
+                        }
+
+                        Divider()
+
                         Button(role: .destructive) {
                             appVM.switchRole()
                         } label: {
@@ -61,6 +103,10 @@ struct AdultInboxView: View {
             }
             .sheet(item: $selectedRequest) { request in
                 AdultRequestDetailView(request: request)
+                    .environmentObject(appVM)
+            }
+            .sheet(isPresented: $showSubscriptionSheet) {
+                SubscriptionView()
                     .environmentObject(appVM)
             }
         }

@@ -4,19 +4,24 @@ struct ContentView: View {
     @EnvironmentObject var appVM: AppViewModel
 
     var body: some View {
-        if let role = appVM.currentRole {
-            if appVM.isPaired {
-                switch role {
-                case .grandma:
-                    GrandmaHomeView()
-                case .adult:
-                    AdultInboxView()
+        Group {
+            if let role = appVM.currentRole {
+                if appVM.isPaired {
+                    switch role {
+                    case .grandma:
+                        GrandmaHomeView()
+                    case .adult:
+                        AdultInboxView()
+                    }
+                } else {
+                    PairingView(role: role)
                 }
             } else {
-                PairingView(role: role)
+                RoleSelectionView()
             }
-        } else {
-            RoleSelectionView()
+        }
+        .task {
+            await appVM.performStartupCleanupIfNeeded()
         }
     }
 }

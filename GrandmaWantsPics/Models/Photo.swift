@@ -14,4 +14,20 @@ struct Photo: Identifiable, Codable {
     enum CodingKeys: String, CodingKey {
         case id, requestId, createdAt, createdByUserId, storagePath
     }
+
+    // MARK: - TTL
+
+    static let ttlDays = 30
+
+    var expiresAt: Date {
+        Calendar.current.date(byAdding: .day, value: Self.ttlDays, to: createdAt) ?? createdAt
+    }
+
+    var isExpired: Bool {
+        Date() >= expiresAt
+    }
+
+    var daysUntilExpiry: Int {
+        max(0, Calendar.current.dateComponents([.day], from: Date(), to: expiresAt).day ?? 0)
+    }
 }

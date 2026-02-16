@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import Combine
 
+@MainActor
 final class AppViewModel: ObservableObject {
 
     @Published var currentRole: AppRole?
@@ -9,10 +10,21 @@ final class AppViewModel: ObservableObject {
     @Published var pairingCode: String?
 
     let store: FamilyStore
+    let subscriptionManager = SubscriptionManager()
 
     private let roleKey = "selectedRole"
     private let pairedKey = "isPaired"
     private var cancellables = Set<AnyCancellable>()
+
+    // MARK: - Subscription Tier
+
+    var subscriptionTier: SubscriptionTier {
+        subscriptionManager.isSubscribed ? .premium : .free
+    }
+
+    var isFreeTier: Bool {
+        subscriptionTier == .free
+    }
 
     init() {
         // Choose store based on config
@@ -24,6 +36,12 @@ final class AppViewModel: ObservableObject {
 
         // Forward store's objectWillChange so views update
         store.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+
+        // Forward subscriptionManager's objectWillChange so views update
+        subscriptionManager.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
@@ -50,6 +68,30 @@ final class AppViewModel: ObservableObject {
         if isPaired {
             store.startListening()
         }
+
+        // Load products and check subscription status
+        Task {
+            await subscriptionManager.loadProducts()
+            await subscriptionManager.checkSubscriptionStatus()
+        }
+    }
+
+    // MARK: - TTL Cleanup
+
+    func performStartupCleanupIfNeeded() async {
+        guard isFreeTier else { return }
+        let cleanup = PhotoTTLCleanupService(store: store)
+        await cleanup.deleteExpiredPhotos()
+    }
+
+    // MARK: - Subscription
+
+    func syncSubscriptionTier() async {
+        do {
+            try await store.updateSubscriptionTier(subscriptionTier)
+        } catch {
+            print("Failed to sync subscription tier: \(error)")
+        }
     }
 
     func selectRole(_ role: AppRole) {
@@ -69,12 +111,17 @@ final class AppViewModel: ObservableObject {
         do {
             let family = try await store.createFamily()
             pairingCode = family.pairingCode
-            isPaired = true
-            UserDefaults.standard.set(true, forKey: pairedKey)
-            store.startListening()
+            // Don't set isPaired yet — let the user see the code first
+            // and tap "Continue" to proceed
         } catch {
             print("Create family error: \(error)")
         }
+    }
+
+    func confirmPairing() {
+        isPaired = true
+        UserDefaults.standard.set(true, forKey: pairedKey)
+        store.startListening()
     }
 
     func joinFamily(code: String) async -> Bool {

@@ -33,7 +33,7 @@ struct AdultRequestDetailView: View {
                 .padding(.top, 24)
 
                 if isFulfilled || didSend {
-                    // Already fulfilled
+                    // Already fulfilled — show sent photos with TTL badges
                     VStack(spacing: 12) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 50))
@@ -42,6 +42,33 @@ struct AdultRequestDetailView: View {
                             .font(.title3.bold())
                     }
                     .padding(.top, 20)
+
+                    if appVM.isFreeTier {
+                        let photos = appVM.store.photos(for: request.id)
+                        let expiringPhotos = photos.filter { $0.daysUntilExpiry <= 7 && !$0.isExpired }
+                        if !expiringPhotos.isEmpty {
+                            VStack(spacing: 8) {
+                                ForEach(expiringPhotos) { photo in
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "clock")
+                                            .foregroundStyle(.orange)
+                                        Text("\(photo.daysUntilExpiry)d left")
+                                            .font(.caption.bold())
+                                            .foregroundStyle(.orange)
+                                        Text("Photo from \(photo.createdAt.formatted(date: .abbreviated, time: .omitted))")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 6)
+                                    .background(Color.orange.opacity(0.1))
+                                    .cornerRadius(8)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
                 } else {
                     // Photo picker
                     PhotosPicker(
