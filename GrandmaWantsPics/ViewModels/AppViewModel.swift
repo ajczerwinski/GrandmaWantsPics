@@ -46,6 +46,15 @@ final class AppViewModel: ObservableObject {
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
 
+        // Sync widget data whenever store state changes (debounced)
+        store.objectWillChange
+            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.syncWidgetData()
+            }
+            .store(in: &cancellables)
+
         // Restore persisted state
         if let raw = UserDefaults.standard.string(forKey: roleKey),
            let role = AppRole(rawValue: raw) {
@@ -74,6 +83,29 @@ final class AppViewModel: ObservableObject {
             await subscriptionManager.loadProducts()
             await subscriptionManager.checkSubscriptionStatus()
         }
+
+        // Initial widget sync
+        syncWidgetData()
+    }
+
+    // MARK: - Widget
+
+    private func syncWidgetData() {
+        let requests = store.requests
+        let pending = requests.filter { $0.status == .pending }
+        let fulfilled = requests.filter { $0.status == .fulfilled }
+
+        let data = WidgetData(
+            role: currentRole?.rawValue,
+            isPaired: isPaired,
+            pendingRequestCount: pending.count,
+            oldestPendingRequestDate: pending.map(\.createdAt).min(),
+            lastFulfilledDate: fulfilled.compactMap(\.fulfilledAt).max(),
+            lastPhotosReceivedDate: fulfilled.compactMap(\.fulfilledAt).max(),
+            lastRequestSentDate: requests.map(\.createdAt).max(),
+            updatedAt: Date()
+        )
+        WidgetDataWriter.write(data)
     }
 
     // MARK: - TTL Cleanup
@@ -97,6 +129,7 @@ final class AppViewModel: ObservableObject {
     func selectRole(_ role: AppRole) {
         currentRole = role
         UserDefaults.standard.set(role.rawValue, forKey: roleKey)
+        syncWidgetData()
     }
 
     func switchRole() {
@@ -122,6 +155,7 @@ final class AppViewModel: ObservableObject {
         isPaired = true
         UserDefaults.standard.set(true, forKey: pairedKey)
         store.startListening()
+        syncWidgetData()
     }
 
     func joinFamily(code: String) async -> Bool {
@@ -130,6 +164,7 @@ final class AppViewModel: ObservableObject {
             isPaired = true
             UserDefaults.standard.set(true, forKey: pairedKey)
             store.startListening()
+            syncWidgetData()
             return true
         } catch {
             print("Join family error: \(error)")
@@ -145,5 +180,6 @@ final class AppViewModel: ObservableObject {
         UserDefaults.standard.removeObject(forKey: roleKey)
         UserDefaults.standard.removeObject(forKey: pairedKey)
         UserDefaults.standard.removeObject(forKey: "firebase_familyId")
+        WidgetDataWriter.write(.empty)
     }
 }

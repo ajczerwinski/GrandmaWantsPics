@@ -14,45 +14,86 @@
 		19A075A48C13D41828B5E27A /* RoleSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9718EC3742EDAF63F7315CE0 /* RoleSelectionView.swift */; };
 		21CB13D1D9C7F27820E267BD /* Configuration.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 73B701C63C1D6C44D4CE360F /* Configuration.storekit */; };
 		2841CF86D6E7F58F05DC0CAF /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 90974C4624FBE31F6DE0C52C /* FirebaseFirestore */; };
+		2846524179EFE9F70FBF7D7C /* AppGroupConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3EB4398E6F491CB1F27956C /* AppGroupConstants.swift */; };
 		42839E42492DFD6889184B98 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BE93001EE4C5FADB3341B4E7 /* Assets.xcassets */; };
 		45657AA4F96D951C05A53BDE /* PhotoRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F4B88862B0F9E44AC0743C /* PhotoRequest.swift */; };
+		46AD93497C6D17AA3D830EE5 /* GrandmaWantsPicsWidgetEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BD4455BFE39420BE58966C6 /* GrandmaWantsPicsWidgetEntry.swift */; };
+		499A1DA55B289A8F3D11563A /* WidgetDataWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34AA6479838FB481AE6A1438 /* WidgetDataWriter.swift */; };
+		501DC5DD6F0CFC7BB758035E /* GrandmaWantsPicsWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BF4DDD7FBF2F2273F96491F9 /* GrandmaWantsPicsWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5C4BD5D5312B2D37F751E143 /* AdultRequestDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B4A5A4C19A182616DBEA31 /* AdultRequestDetailView.swift */; };
+		66DB0D49E77442D9C30A5585 /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42ADAA2BAE02EB258220FBF /* WidgetData.swift */; };
 		6CDDBB74DE4401BB27F089F2 /* GrandmaHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB69B8425FCB33B39F1E7258 /* GrandmaHomeView.swift */; };
 		6FBD38D54C10D5660E846870 /* FamilyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E1126F61D0FEB3C57E3DD57 /* FamilyStore.swift */; };
 		727ABC8FCE7A58048D13F0DB /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4F3DDE20F7BE290FBCBF090 /* SubscriptionManager.swift */; };
 		76F87361E1A1953BACAAC3A2 /* PhotoTTLCleanupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9783C35EC687A107C44946A3 /* PhotoTTLCleanupService.swift */; };
 		85FB66946B544AD529FEF65F /* SubscriptionTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02039B953E5116D53E8FF9F /* SubscriptionTier.swift */; };
 		870AC9436DE7F070A0779D8F /* Photo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C0CCB869696EFD6136946CF /* Photo.swift */; };
+		92EB139320790CA0135C8617 /* GrandmaWantsPicsWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36C276F80836FCB4A074A665 /* GrandmaWantsPicsWidgetBundle.swift */; };
 		97BF4C2722AF04DEE51572D6 /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EACBEBBA7E0068B3C6FCCFA /* AppViewModel.swift */; };
+		9A6C58017639D61A8C242052 /* GrandmaWantsPicsWidgetProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E22536F429B7CBD7BB90104A /* GrandmaWantsPicsWidgetProvider.swift */; };
 		A1770E4D638AA46F86CB8447 /* GrandmaWantsPicsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22E9F1741CE238208EE2580 /* GrandmaWantsPicsApp.swift */; };
 		A61EFA66DF452607C3D578A5 /* FirebaseFamilyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B682290847D37D5F166656 /* FirebaseFamilyStore.swift */; };
 		AA953874085C01C054BADDEA /* Family.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FF34183F5C2A1EE08DFAAC /* Family.swift */; };
 		AE1F1B5E384F7D55C157C96F /* LocalFamilyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E5D189B72460DD42FD4CE7A /* LocalFamilyStore.swift */; };
+		AF5CDB03E6456A94A5C6F30B /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42ADAA2BAE02EB258220FBF /* WidgetData.swift */; };
 		B0C3034B1537D54B9276C3C5 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739D4F8A88CB94AA1E6F5DF6 /* AppConfig.swift */; };
 		C74AAB0496DB7770615FDA5F /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = DE6A053FADD831F5BB8323C5 /* FirebaseStorage */; };
 		C96EC60F7856EBBB88609306 /* GrandmaGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DEDC81060104373627B8306 /* GrandmaGalleryView.swift */; };
 		CA3D1D94B0D7910B2A1A0304 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0FE14D52E63742C9DBEB956E /* GoogleService-Info.plist */; };
+		CAAE7ABB9F616DFEFAF58DB2 /* WidgetDataWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34AA6479838FB481AE6A1438 /* WidgetDataWriter.swift */; };
 		CEA79202F5A04C8A7E687BCD /* SubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E51BFC8F22D7A42B56CAF9 /* SubscriptionView.swift */; };
+		D15C7C2411778312FFA38FCD /* GrandmaWantsPicsWidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50602CAD4F604BD5F4795F87 /* GrandmaWantsPicsWidgetViews.swift */; };
+		E4F5267D348C1F39DCDB8E93 /* AppGroupConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3EB4398E6F491CB1F27956C /* AppGroupConstants.swift */; };
 		F1AC843E9855B312E924F4CE /* AdultInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F64CC73B37B34EDFCC7EE0C0 /* AdultInboxView.swift */; };
 		F1EEFB4445F0376B059368CA /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3DB5FC1E01B640B5D17352B5 /* FirebaseAuth */; };
 		FDC91C428DB1C3358724909C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E48DFE2BAB4E3A9A86437C6 /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		24767E94F612B1ACECA48CC8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AED03DA1CD86053757178247 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8AF7EF4A3B3A7056A92316DF;
+			remoteInfo = GrandmaWantsPicsWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C84246DFC15D26C15AB53E1B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				501DC5DD6F0CFC7BB758035E /* GrandmaWantsPicsWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		0867397282C6D3797F5DAC56 /* GrandmaPhotoViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaPhotoViewer.swift; sourceTree = "<group>"; };
+		0E8268AD6AEA52D68FBAA7BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0FE14D52E63742C9DBEB956E /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		1E5D189B72460DD42FD4CE7A /* LocalFamilyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFamilyStore.swift; sourceTree = "<group>"; };
 		1EACBEBBA7E0068B3C6FCCFA /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
 		21F4B88862B0F9E44AC0743C /* PhotoRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoRequest.swift; sourceTree = "<group>"; };
+		2E89672A9318D6F75AE0BBBD /* GrandmaWantsPicsWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GrandmaWantsPicsWidget.entitlements; sourceTree = "<group>"; };
+		34AA6479838FB481AE6A1438 /* WidgetDataWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataWriter.swift; sourceTree = "<group>"; };
+		36C276F80836FCB4A074A665 /* GrandmaWantsPicsWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaWantsPicsWidgetBundle.swift; sourceTree = "<group>"; };
 		4273579D309D34C253AAFD3C /* AppRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRole.swift; sourceTree = "<group>"; };
 		46B4A5A4C19A182616DBEA31 /* AdultRequestDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdultRequestDetailView.swift; sourceTree = "<group>"; };
 		49B682290847D37D5F166656 /* FirebaseFamilyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseFamilyStore.swift; sourceTree = "<group>"; };
+		50602CAD4F604BD5F4795F87 /* GrandmaWantsPicsWidgetViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaWantsPicsWidgetViews.swift; sourceTree = "<group>"; };
 		58E51BFC8F22D7A42B56CAF9 /* SubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionView.swift; sourceTree = "<group>"; };
 		5DEDC81060104373627B8306 /* GrandmaGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaGalleryView.swift; sourceTree = "<group>"; };
 		625D146E4B04EB21DCC79F59 /* GrandmaWantsPics.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GrandmaWantsPics.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E1126F61D0FEB3C57E3DD57 /* FamilyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyStore.swift; sourceTree = "<group>"; };
 		739D4F8A88CB94AA1E6F5DF6 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		73B701C63C1D6C44D4CE360F /* Configuration.storekit */ = {isa = PBXFileReference; path = Configuration.storekit; sourceTree = "<group>"; };
+		8BD4455BFE39420BE58966C6 /* GrandmaWantsPicsWidgetEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaWantsPicsWidgetEntry.swift; sourceTree = "<group>"; };
 		8E48DFE2BAB4E3A9A86437C6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		9718EC3742EDAF63F7315CE0 /* RoleSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoleSelectionView.swift; sourceTree = "<group>"; };
 		9783C35EC687A107C44946A3 /* PhotoTTLCleanupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoTTLCleanupService.swift; sourceTree = "<group>"; };
@@ -61,8 +102,13 @@
 		A34E5EA255B13EF9D3831EF1 /* PairingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingView.swift; sourceTree = "<group>"; };
 		A4F3DDE20F7BE290FBCBF090 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		BE93001EE4C5FADB3341B4E7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BF4DDD7FBF2F2273F96491F9 /* GrandmaWantsPicsWidgetExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GrandmaWantsPicsWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C398D898F6DFFDECDBBD9520 /* GrandmaWantsPics.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GrandmaWantsPics.entitlements; sourceTree = "<group>"; };
 		D02039B953E5116D53E8FF9F /* SubscriptionTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionTier.swift; sourceTree = "<group>"; };
+		E22536F429B7CBD7BB90104A /* GrandmaWantsPicsWidgetProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaWantsPicsWidgetProvider.swift; sourceTree = "<group>"; };
 		F22E9F1741CE238208EE2580 /* GrandmaWantsPicsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaWantsPicsApp.swift; sourceTree = "<group>"; };
+		F3EB4398E6F491CB1F27956C /* AppGroupConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupConstants.swift; sourceTree = "<group>"; };
+		F42ADAA2BAE02EB258220FBF /* WidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetData.swift; sourceTree = "<group>"; };
 		F64CC73B37B34EDFCC7EE0C0 /* AdultInboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdultInboxView.swift; sourceTree = "<group>"; };
 		FB69B8425FCB33B39F1E7258 /* GrandmaHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaHomeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -140,12 +186,26 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		83DFC5CB8A3E06E5F3B449F6 /* GrandmaWantsPicsWidget */ = {
+			isa = PBXGroup;
+			children = (
+				2E89672A9318D6F75AE0BBBD /* GrandmaWantsPicsWidget.entitlements */,
+				36C276F80836FCB4A074A665 /* GrandmaWantsPicsWidgetBundle.swift */,
+				8BD4455BFE39420BE58966C6 /* GrandmaWantsPicsWidgetEntry.swift */,
+				E22536F429B7CBD7BB90104A /* GrandmaWantsPicsWidgetProvider.swift */,
+				50602CAD4F604BD5F4795F87 /* GrandmaWantsPicsWidgetViews.swift */,
+				0E8268AD6AEA52D68FBAA7BF /* Info.plist */,
+			);
+			path = GrandmaWantsPicsWidget;
+			sourceTree = "<group>";
+		};
 		956F422C769516E84CE33AF5 /* GrandmaWantsPics */ = {
 			isa = PBXGroup;
 			children = (
 				BE93001EE4C5FADB3341B4E7 /* Assets.xcassets */,
 				73B701C63C1D6C44D4CE360F /* Configuration.storekit */,
 				0FE14D52E63742C9DBEB956E /* GoogleService-Info.plist */,
+				C398D898F6DFFDECDBBD9520 /* GrandmaWantsPics.entitlements */,
 				797F6F9C52A3B6EBB3775C75 /* App */,
 				156B83A0A8FBEC0DD589C8D4 /* Models */,
 				F8DC566C8BD22CE26248E9BC /* Services */,
@@ -153,6 +213,16 @@
 				D11BE4640CDFBD457C1A9DB5 /* Views */,
 			);
 			path = GrandmaWantsPics;
+			sourceTree = "<group>";
+		};
+		B95E69DE6B9AD58A1833990A /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				F3EB4398E6F491CB1F27956C /* AppGroupConstants.swift */,
+				F42ADAA2BAE02EB258220FBF /* WidgetData.swift */,
+				34AA6479838FB481AE6A1438 /* WidgetDataWriter.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		D11BE4640CDFBD457C1A9DB5 /* Views */ = {
@@ -170,6 +240,8 @@
 			isa = PBXGroup;
 			children = (
 				956F422C769516E84CE33AF5 /* GrandmaWantsPics */,
+				83DFC5CB8A3E06E5F3B449F6 /* GrandmaWantsPicsWidget */,
+				B95E69DE6B9AD58A1833990A /* Shared */,
 				E0A1763655F0C4D82D565941 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -178,6 +250,7 @@
 			isa = PBXGroup;
 			children = (
 				625D146E4B04EB21DCC79F59 /* GrandmaWantsPics.app */,
+				BF4DDD7FBF2F2273F96491F9 /* GrandmaWantsPicsWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -197,6 +270,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		8AF7EF4A3B3A7056A92316DF /* GrandmaWantsPicsWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 10991CD44A9A2520AA60F6D9 /* Build configuration list for PBXNativeTarget "GrandmaWantsPicsWidgetExtension" */;
+			buildPhases = (
+				EFCCF583007B8707E988A5E4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GrandmaWantsPicsWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = GrandmaWantsPicsWidgetExtension;
+			productReference = BF4DDD7FBF2F2273F96491F9 /* GrandmaWantsPicsWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		B93DD61FCCCAA1CA02B01258 /* GrandmaWantsPics */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C3F73E196F7FFBBDAD8A2611 /* Build configuration list for PBXNativeTarget "GrandmaWantsPics" */;
@@ -204,10 +294,12 @@
 				27BD5EA8E411A44584F929E1 /* Sources */,
 				8863C2128EE3465821E3BB2D /* Resources */,
 				D9001CE3176A6FA4619CD3FC /* Frameworks */,
+				C84246DFC15D26C15AB53E1B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				CF7F4286DF92DAE2E9C7935D /* PBXTargetDependency */,
 			);
 			name = GrandmaWantsPics;
 			packageProductDependencies = (
@@ -247,6 +339,7 @@
 			projectRoot = "";
 			targets = (
 				B93DD61FCCCAA1CA02B01258 /* GrandmaWantsPics */,
+				8AF7EF4A3B3A7056A92316DF /* GrandmaWantsPicsWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -272,6 +365,7 @@
 				F1AC843E9855B312E924F4CE /* AdultInboxView.swift in Sources */,
 				5C4BD5D5312B2D37F751E143 /* AdultRequestDetailView.swift in Sources */,
 				B0C3034B1537D54B9276C3C5 /* AppConfig.swift in Sources */,
+				E4F5267D348C1F39DCDB8E93 /* AppGroupConstants.swift in Sources */,
 				195F8671ADEC178C7EAC9D5A /* AppRole.swift in Sources */,
 				97BF4C2722AF04DEE51572D6 /* AppViewModel.swift in Sources */,
 				FDC91C428DB1C3358724909C /* ContentView.swift in Sources */,
@@ -291,17 +385,62 @@
 				727ABC8FCE7A58048D13F0DB /* SubscriptionManager.swift in Sources */,
 				85FB66946B544AD529FEF65F /* SubscriptionTier.swift in Sources */,
 				CEA79202F5A04C8A7E687BCD /* SubscriptionView.swift in Sources */,
+				66DB0D49E77442D9C30A5585 /* WidgetData.swift in Sources */,
+				CAAE7ABB9F616DFEFAF58DB2 /* WidgetDataWriter.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EFCCF583007B8707E988A5E4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2846524179EFE9F70FBF7D7C /* AppGroupConstants.swift in Sources */,
+				92EB139320790CA0135C8617 /* GrandmaWantsPicsWidgetBundle.swift in Sources */,
+				46AD93497C6D17AA3D830EE5 /* GrandmaWantsPicsWidgetEntry.swift in Sources */,
+				9A6C58017639D61A8C242052 /* GrandmaWantsPicsWidgetProvider.swift in Sources */,
+				D15C7C2411778312FFA38FCD /* GrandmaWantsPicsWidgetViews.swift in Sources */,
+				AF5CDB03E6456A94A5C6F30B /* WidgetData.swift in Sources */,
+				499A1DA55B289A8F3D11563A /* WidgetDataWriter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		CF7F4286DF92DAE2E9C7935D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8AF7EF4A3B3A7056A92316DF /* GrandmaWantsPicsWidgetExtension */;
+			targetProxy = 24767E94F612B1ACECA48CC8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		23EF95C12355273BD940DCBE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = GrandmaWantsPicsWidget/GrandmaWantsPicsWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GrandmaWantsPicsWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.grandmawantspics.GrandmaWantsPics.WidgetExtension;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		6DF58BAFC39659608FA328D9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = GrandmaWantsPics/GrandmaWantsPics.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = GrandmaWantsPics/Info.plist;
@@ -373,6 +512,26 @@
 			};
 			name = Release;
 		};
+		D464CD36C52428AF415645FA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = GrandmaWantsPicsWidget/GrandmaWantsPicsWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GrandmaWantsPicsWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.grandmawantspics.GrandmaWantsPics.WidgetExtension;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		DBBBBE09D6FB4AC9A1B4D871 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -442,6 +601,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = GrandmaWantsPics/GrandmaWantsPics.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = GrandmaWantsPics/Info.plist;
@@ -459,6 +619,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		10991CD44A9A2520AA60F6D9 /* Build configuration list for PBXNativeTarget "GrandmaWantsPicsWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D464CD36C52428AF415645FA /* Debug */,
+				23EF95C12355273BD940DCBE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		1CA2BA861D41A298BB99A0A6 /* Build configuration list for PBXProject "GrandmaWantsPics" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -18,10 +18,16 @@ targets:
   GrandmaWantsPics:
     type: application
     platform: iOS
+    entitlements:
+      path: GrandmaWantsPics/GrandmaWantsPics.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.grandmawantspics.shared
     sources:
       - path: GrandmaWantsPics
         excludes:
           - "Info.plist"
+      - path: Shared
     info:
       path: GrandmaWantsPics/Info.plist
       properties:
@@ -29,6 +35,9 @@ targets:
           UIApplicationSupportsMultipleScenes: false
         UILaunchScreen: {}
         NSPhotoLibraryUsageDescription: "We need access to your photo library to send pictures to Grandma."
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - grandmawantspics
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
@@ -47,9 +56,38 @@ targets:
         product: FirebaseFirestore
       - package: Firebase
         product: FirebaseStorage
+      - target: GrandmaWantsPicsWidgetExtension
+        embed: true
     settings:
       base:
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: 1
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+
+  GrandmaWantsPicsWidgetExtension:
+    type: app-extension
+    platform: iOS
+    productName: GrandmaWantsPicsWidgetExtension
+    entitlements:
+      path: GrandmaWantsPicsWidget/GrandmaWantsPicsWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.grandmawantspics.shared
+    sources:
+      - path: GrandmaWantsPicsWidget
+      - path: Shared
+    info:
+      path: GrandmaWantsPicsWidget/Info.plist
+      properties:
+        CFBundleDisplayName: GrandmaWantsPics Widget
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.grandmawantspics.GrandmaWantsPics.WidgetExtension
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: 1
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_VERSION: "5.9"
+        GENERATE_INFOPLIST_FILE: true

@@ -17,6 +17,12 @@ struct GrandmaWantsPicsApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appVM)
+                .onOpenURL { url in
+                    // Widget deep links: grandmawantspics://inbox, grandmawantspics://home, etc.
+                    // The app's existing ContentView routing handles showing the correct
+                    // screen based on role and pairing state, so just opening the app suffices.
+                    guard url.scheme == AppGroupConstants.deepLinkScheme else { return }
+                }
         }
     }
 }
