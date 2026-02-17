@@ -85,6 +85,11 @@ final class AppViewModel: ObservableObject {
             await subscriptionManager.checkSubscriptionStatus()
         }
 
+        // Set up push notifications for already-paired users
+        if isPaired {
+            Task { await setupNotifications() }
+        }
+
         // Initial widget sync
         syncWidgetData()
     }

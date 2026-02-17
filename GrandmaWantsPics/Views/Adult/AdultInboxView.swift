@@ -25,7 +25,7 @@ struct AdultInboxView: View {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text("Photos expire after 30 days")
                                             .font(.subheadline.bold())
-                                        Text("Upgrade to Premium to keep them forever.")
+                                        Text("Upgrade to Premium to keep them longer.")
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
                                     }

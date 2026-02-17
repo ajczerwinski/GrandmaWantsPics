@@ -20,7 +20,7 @@ struct SubscriptionView: View {
                             .foregroundStyle(.yellow)
                         Text("GrandmaWantsPics Premium")
                             .font(.title2.bold())
-                        Text("Keep your photos forever")
+                        Text("Keep your photos as long as you're subscribed")
                             .foregroundStyle(.secondary)
                     }
                     .padding(.top, 32)
@@ -35,7 +35,7 @@ struct SubscriptionView: View {
                         comparisonRow(
                             feature: "Photo storage",
                             free: "30 days",
-                            premium: "Forever"
+                            premium: "While subscribed"
                         )
                         comparisonRow(
                             feature: "Photo quality",
@@ -56,7 +56,7 @@ struct SubscriptionView: View {
                                 .foregroundStyle(.green)
                             Text("You're subscribed!")
                                 .font(.headline)
-                            Text("Your photos are saved forever.")
+                            Text("Your photos are kept while subscribed.")
                                 .foregroundStyle(.secondary)
                         }
                         .padding()
