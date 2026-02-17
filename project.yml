@@ -23,6 +23,7 @@ targets:
       properties:
         com.apple.security.application-groups:
           - group.com.grandmawantspics.shared
+        aps-environment: development
     sources:
       - path: GrandmaWantsPics
         excludes:
@@ -42,6 +43,8 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
+        UIBackgroundModes:
+          - remote-notification
         UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationPortraitUpsideDown
@@ -56,6 +59,8 @@ targets:
         product: FirebaseFirestore
       - package: Firebase
         product: FirebaseStorage
+      - package: Firebase
+        product: FirebaseMessaging
       - target: GrandmaWantsPicsWidgetExtension
         embed: true
     settings:

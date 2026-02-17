@@ -11,6 +11,7 @@ final class AppViewModel: ObservableObject {
 
     let store: FamilyStore
     let subscriptionManager = SubscriptionManager()
+    let notificationService = NotificationService.shared
 
     private let roleKey = "selectedRole"
     private let pairedKey = "isPaired"
@@ -156,6 +157,7 @@ final class AppViewModel: ObservableObject {
         UserDefaults.standard.set(true, forKey: pairedKey)
         store.startListening()
         syncWidgetData()
+        Task { await setupNotifications() }
     }
 
     func joinFamily(code: String) async -> Bool {
@@ -165,6 +167,7 @@ final class AppViewModel: ObservableObject {
             UserDefaults.standard.set(true, forKey: pairedKey)
             store.startListening()
             syncWidgetData()
+            await setupNotifications()
             return true
         } catch {
             print("Join family error: \(error)")
@@ -181,5 +184,14 @@ final class AppViewModel: ObservableObject {
         UserDefaults.standard.removeObject(forKey: pairedKey)
         UserDefaults.standard.removeObject(forKey: "firebase_familyId")
         WidgetDataWriter.write(.empty)
+    }
+
+    // MARK: - Notifications
+
+    func setupNotifications() async {
+        guard AppConfig.useFirebase else { return }
+        notificationService.configureFCM()
+        _ = await notificationService.requestPermission()
+        await notificationService.saveFCMToken(store: store)
     }
 }

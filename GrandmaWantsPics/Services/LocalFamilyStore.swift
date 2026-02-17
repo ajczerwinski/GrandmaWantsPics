@@ -107,6 +107,12 @@ final class LocalFamilyStore: FamilyStore {
         saveToDisk()
     }
 
+    // MARK: - FCM Token
+
+    override func saveFCMToken(_ token: String) async throws {
+        // No-op for local mode
+    }
+
     // MARK: - Subscription Tier
 
     override func updateSubscriptionTier(_ tier: SubscriptionTier) async throws {

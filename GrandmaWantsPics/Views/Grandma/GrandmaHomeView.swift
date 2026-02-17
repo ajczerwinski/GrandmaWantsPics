@@ -5,6 +5,7 @@ struct GrandmaHomeView: View {
     @State private var showConfirmation = false
     @State private var showGallery = false
     @State private var lastRequestTime: Date?
+    @State private var hasPromptedNotifications = false
 
     private var fulfilledPhotosExist: Bool {
         appVM.store.requests.contains(where: { $0.status == .fulfilled })
@@ -20,6 +21,12 @@ struct GrandmaHomeView: View {
                         _ = try? await appVM.store.createRequest()
                         lastRequestTime = Date()
                         showConfirmation = true
+
+                        // Prompt for notifications after first request
+                        if !hasPromptedNotifications {
+                            hasPromptedNotifications = true
+                            await appVM.setupNotifications()
+                        }
 
                         // Auto-dismiss confirmation
                         try? await Task.sleep(for: .seconds(3))

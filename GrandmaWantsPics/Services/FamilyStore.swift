@@ -17,6 +17,7 @@ class FamilyStore: ObservableObject {
     func loadImageData(for photo: Photo) async throws -> Data? { nil }
     func deletePhoto(_ photo: Photo, fromRequest requestId: String) async throws { fatalError("Subclass must implement") }
     func updateSubscriptionTier(_ tier: SubscriptionTier) async throws { fatalError("Subclass must implement") }
+    func saveFCMToken(_ token: String) async throws { fatalError("Subclass must implement") }
     func startListening() {}
     func stopListening() {}
 }

@@ -262,6 +262,21 @@ final class FirebaseFamilyStore: FamilyStore {
         ])
     }
 
+    // MARK: - FCM Token
+
+    override func saveFCMToken(_ token: String) async throws {
+        guard let fid = familyId, let uid = currentUserId else { throw StoreError.notPaired }
+
+        let snapshot = try await db.collection("families").document(fid)
+            .collection("connections")
+            .whereField("userId", isEqualTo: uid)
+            .limit(to: 1)
+            .getDocuments()
+
+        guard let doc = snapshot.documents.first else { return }
+        try await doc.reference.updateData(["fcmToken": token])
+    }
+
     // MARK: - Errors
 
     enum StoreError: LocalizedError {
