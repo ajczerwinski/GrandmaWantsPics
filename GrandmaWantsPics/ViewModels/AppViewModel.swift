@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 import Combine
 
 @MainActor
@@ -8,6 +9,7 @@ final class AppViewModel: ObservableObject {
     @Published var currentRole: AppRole?
     @Published var isPaired: Bool = false
     @Published var pairingCode: String?
+    @Published var isCheckingClipboard: Bool = false
 
     let store: FamilyStore
     let subscriptionManager = SubscriptionManager()
@@ -228,6 +230,50 @@ final class AppViewModel: ObservableObject {
         Task {
             _ = await joinFamily(code: code, asRole: role)
         }
+    }
+
+    // MARK: - Clipboard Invite
+
+    func checkClipboardForInvite() async -> Bool {
+        guard !isPaired, currentRole == nil else { return false }
+
+        guard let clipString = UIPasteboard.general.string,
+              let data = clipString.data(using: .utf8) else { return false }
+
+        let payload: ClipboardInvitePayload
+        do {
+            payload = try JSONDecoder().decode(ClipboardInvitePayload.self, from: data)
+        } catch {
+            return false
+        }
+
+        // Validate namespace
+        guard payload.app == "grandmawantspics" else { return false }
+
+        // Validate timestamp (must be < 30 minutes old)
+        let age = Int(Date().timeIntervalSince1970) - payload.ts
+        guard age >= 0, age < 30 * 60 else { return false }
+
+        // Validate code is a UUID
+        guard UUID(uuidString: payload.code) != nil else { return false }
+
+        // Validate role
+        guard let appRole = AppRole(rawValue: payload.role) else { return false }
+
+        // Clear clipboard to prevent re-triggering
+        UIPasteboard.general.string = ""
+
+        // Set role and join
+        selectRole(appRole)
+        let success = await joinFamily(code: payload.code, asRole: payload.role)
+
+        if !success {
+            // Reset role so user sees normal selection flow
+            currentRole = nil
+            UserDefaults.standard.removeObject(forKey: roleKey)
+        }
+
+        return success
     }
 
     func resetAll() {
