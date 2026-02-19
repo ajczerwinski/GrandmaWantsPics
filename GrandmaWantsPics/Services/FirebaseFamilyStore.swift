@@ -34,19 +34,23 @@ final class FirebaseFamilyStore: FamilyStore {
         try await ensureSignedIn()
         guard let uid = currentUserId else { throw StoreError.notAuthenticated }
 
-        let code = String(format: "%04d", Int.random(in: 1000...9999))
+        let code = UUID().uuidString
+        let now = Date()
+        let expiresAt = now.addingTimeInterval(15 * 60)
         let familyRef = db.collection("families").document()
         let family = Family(
             id: familyRef.documentID,
-            createdAt: Date(),
+            createdAt: now,
             createdByUserId: uid,
-            pairingCode: code
+            pairingCode: code,
+            pairingExpiresAt: expiresAt
         )
 
         try await familyRef.setData([
             "createdAt": Timestamp(date: family.createdAt),
             "createdByUserId": uid,
             "pairingCode": code,
+            "pairingExpiresAt": Timestamp(date: expiresAt),
             "subscriptionTier": "free"
         ])
 
@@ -62,7 +66,7 @@ final class FirebaseFamilyStore: FamilyStore {
         return family
     }
 
-    override func joinFamily(pairingCode: String) async throws -> Family {
+    override func joinFamily(pairingCode: String, asRole: String = "grandma") async throws -> Family {
         try await ensureSignedIn()
         guard let uid = currentUserId else { throw StoreError.notAuthenticated }
 
@@ -76,17 +80,25 @@ final class FirebaseFamilyStore: FamilyStore {
         }
 
         let data = doc.data()
+
+        // Check expiration
+        if let expiresTimestamp = data["pairingExpiresAt"] as? Timestamp,
+           expiresTimestamp.dateValue() < Date() {
+            throw StoreError.pairingCodeExpired
+        }
+
         let family = Family(
             id: doc.documentID,
             createdAt: (data["createdAt"] as? Timestamp)?.dateValue() ?? Date(),
             createdByUserId: data["createdByUserId"] as? String ?? "",
-            pairingCode: pairingCode
+            pairingCode: pairingCode,
+            pairingExpiresAt: (data["pairingExpiresAt"] as? Timestamp)?.dateValue()
         )
 
-        // Add grandma connection
+        // Add connection with the specified role
         try await doc.reference.collection("connections").addDocument(data: [
             "userId": uid,
-            "role": "grandma",
+            "role": asRole,
             "createdAt": Timestamp(date: Date())
         ])
 
@@ -282,12 +294,14 @@ final class FirebaseFamilyStore: FamilyStore {
     enum StoreError: LocalizedError {
         case notAuthenticated
         case invalidPairingCode
+        case pairingCodeExpired
         case notPaired
 
         var errorDescription: String? {
             switch self {
             case .notAuthenticated: return "Not signed in."
             case .invalidPairingCode: return "Invalid pairing code."
+            case .pairingCodeExpired: return "This invite link has expired. Ask for a new one."
             case .notPaired: return "Not connected to a family yet."
             }
         }

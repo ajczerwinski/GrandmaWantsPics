@@ -8,6 +8,8 @@ struct PairingView: View {
     @State private var generatedCode: String?
     @State private var errorMessage: String?
     @State private var isLoading = false
+    @State private var showShareSheet = false
+    @State private var showManualCode = false
 
     var body: some View {
         VStack(spacing: 32) {
@@ -24,7 +26,7 @@ struct PairingView: View {
         .padding(32)
     }
 
-    // MARK: - Adult: Generate Code
+    // MARK: - Adult: Share Invite Link
 
     @ViewBuilder
     private var adultPairingView: some View {
@@ -37,16 +39,51 @@ struct PairingView: View {
                 .font(.title.bold())
 
             if let code = generatedCode ?? appVM.pairingCode {
-                VStack(spacing: 12) {
-                    Text("Give this code to Grandma:")
+                VStack(spacing: 16) {
+                    Text("Invite link ready!")
                         .font(.title3)
-                    Text(code)
-                        .font(.system(size: 48, weight: .bold, design: .monospaced))
+
+                    Button {
+                        showShareSheet = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Send Invite")
+                        }
+                        .font(.title3.bold())
+                        .foregroundStyle(.white)
                         .padding()
-                        .background(Color.blue.opacity(0.1))
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue.gradient)
                         .cornerRadius(16)
-                    Text("She'll enter it on her device.")
-                        .foregroundStyle(.secondary)
+                    }
+                    .sheet(isPresented: $showShareSheet) {
+                        ActivityView(activityItems: [appVM.shareMessage])
+                    }
+
+                    // Collapsed fallback with manual code
+                    DisclosureGroup("Having trouble?", isExpanded: $showManualCode) {
+                        VStack(spacing: 8) {
+                            Text("Share this code manually:")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Text(code)
+                                .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                .padding(8)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(8)
+                                .textSelection(.enabled)
+                            Button {
+                                UIPasteboard.general.string = code
+                            } label: {
+                                Label("Copy Code", systemImage: "doc.on.doc")
+                                    .font(.subheadline)
+                            }
+                        }
+                        .padding(.top, 8)
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal)
                 }
 
                 Button {
@@ -67,13 +104,16 @@ struct PairingView: View {
                         generatedCode = appVM.pairingCode
                     }
                 } label: {
-                    Text("Generate Pairing Code")
-                        .font(.title3.bold())
-                        .foregroundStyle(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue.gradient)
-                        .cornerRadius(16)
+                    HStack {
+                        Image(systemName: "link.badge.plus")
+                        Text("Create Invite Link")
+                    }
+                    .font(.title3.bold())
+                    .foregroundStyle(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue.gradient)
+                    .cornerRadius(16)
                 }
             }
         }
@@ -91,17 +131,19 @@ struct PairingView: View {
             Text("Enter Your Code")
                 .font(.title.bold())
 
-            Text("Ask your family for the\npairing code.")
+            Text("Ask your family for the\ninvite link or pairing code.")
                 .font(.title3)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
 
-            TextField("Code", text: $enteredCode)
-                .font(.system(size: 36, weight: .bold, design: .monospaced))
+            TextField("Paste code here", text: $enteredCode)
+                .font(.system(size: 16, weight: .bold, design: .monospaced))
                 .multilineTextAlignment(.center)
                 .textFieldStyle(.roundedBorder)
-                .keyboardType(.numberPad)
-                .frame(maxWidth: 200)
+                .keyboardType(.default)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+                .frame(maxWidth: 320)
 
             if let error = errorMessage {
                 Text(error)
@@ -112,9 +154,9 @@ struct PairingView: View {
                 Task {
                     isLoading = true
                     errorMessage = nil
-                    let ok = await appVM.joinFamily(code: enteredCode)
+                    let ok = await appVM.joinFamily(code: enteredCode, asRole: role.rawValue)
                     if !ok {
-                        errorMessage = "Invalid code. Try again."
+                        errorMessage = "Invalid or expired code. Try again."
                     }
                     isLoading = false
                 }

@@ -28,7 +28,7 @@ final class LocalFamilyStore: FamilyStore {
         return family
     }
 
-    override func joinFamily(pairingCode: String) async throws -> Family {
+    override func joinFamily(pairingCode: String, asRole: String = "grandma") async throws -> Family {
         guard pairingCode == "1234" else {
             throw LocalStoreError.invalidPairingCode
         }

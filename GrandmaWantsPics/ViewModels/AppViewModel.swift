@@ -165,9 +165,9 @@ final class AppViewModel: ObservableObject {
         Task { await setupNotifications() }
     }
 
-    func joinFamily(code: String) async -> Bool {
+    func joinFamily(code: String, asRole: String = "grandma") async -> Bool {
         do {
-            _ = try await store.joinFamily(pairingCode: code)
+            _ = try await store.joinFamily(pairingCode: code, asRole: asRole)
             isPaired = true
             UserDefaults.standard.set(true, forKey: pairedKey)
             store.startListening()
@@ -177,6 +177,51 @@ final class AppViewModel: ObservableObject {
         } catch {
             print("Join family error: \(error)")
             return false
+        }
+    }
+
+    // MARK: - Share Link
+
+    func generateShareLink() -> URL? {
+        guard let code = pairingCode else { return nil }
+        let recipientRole = currentRole == .adult ? "grandma" : "adult"
+        var components = URLComponents()
+        components.scheme = AppGroupConstants.deepLinkScheme
+        components.host = "join"
+        components.queryItems = [
+            URLQueryItem(name: "code", value: code),
+            URLQueryItem(name: "role", value: recipientRole)
+        ]
+        return components.url
+    }
+
+    var shareMessage: String {
+        guard let link = generateShareLink() else { return "" }
+        return "I set up GrandmaWantsPics for us! Tap this link to connect: \(link)"
+    }
+
+    // MARK: - Deep Link
+
+    func handleDeepLink(_ url: URL) {
+        guard url.scheme == AppGroupConstants.deepLinkScheme else { return }
+
+        // Only handle join links; ignore widget deep links
+        guard url.host == "join" else { return }
+
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        guard let code = components?.queryItems?.first(where: { $0.name == "code" })?.value else { return }
+        let role = components?.queryItems?.first(where: { $0.name == "role" })?.value ?? "grandma"
+
+        // Ignore if already paired
+        guard !isPaired else { return }
+
+        // Set the role from the link and join
+        if let appRole = AppRole(rawValue: role) {
+            selectRole(appRole)
+        }
+
+        Task {
+            _ = await joinFamily(code: code, asRole: role)
         }
     }
 

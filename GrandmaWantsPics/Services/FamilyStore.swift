@@ -10,7 +10,7 @@ class FamilyStore: ObservableObject {
     var familyId: String?
 
     func createFamily() async throws -> Family { fatalError("Subclass must implement") }
-    func joinFamily(pairingCode: String) async throws -> Family { fatalError("Subclass must implement") }
+    func joinFamily(pairingCode: String, asRole: String = "grandma") async throws -> Family { fatalError("Subclass must implement") }
     func createRequest() async throws -> PhotoRequest { fatalError("Subclass must implement") }
     func fulfillRequest(_ requestId: String, imageDataList: [Data]) async throws { fatalError("Subclass must implement") }
     func photos(for requestId: String) -> [Photo] { allPhotos[requestId] ?? [] }
