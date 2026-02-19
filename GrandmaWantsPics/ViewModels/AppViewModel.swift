@@ -186,8 +186,9 @@ final class AppViewModel: ObservableObject {
         guard let code = pairingCode else { return nil }
         let recipientRole = currentRole == .adult ? "grandma" : "adult"
         var components = URLComponents()
-        components.scheme = AppGroupConstants.deepLinkScheme
-        components.host = "join"
+        components.scheme = "https"
+        components.host = "grandmawantspics.com"
+        components.path = "/join"
         components.queryItems = [
             URLQueryItem(name: "code", value: code),
             URLQueryItem(name: "role", value: recipientRole)
@@ -203,10 +204,14 @@ final class AppViewModel: ObservableObject {
     // MARK: - Deep Link
 
     func handleDeepLink(_ url: URL) {
-        guard url.scheme == AppGroupConstants.deepLinkScheme else { return }
+        let isCustomScheme = url.scheme == AppGroupConstants.deepLinkScheme
+        let isUniversalLink = url.scheme == "https" && url.host == "grandmawantspics.com"
+
+        guard isCustomScheme || isUniversalLink else { return }
 
         // Only handle join links; ignore widget deep links
-        guard url.host == "join" else { return }
+        let isJoinLink = isCustomScheme ? url.host == "join" : url.path.hasPrefix("/join")
+        guard isJoinLink else { return }
 
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         guard let code = components?.queryItems?.first(where: { $0.name == "code" })?.value else { return }

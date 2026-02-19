@@ -40,6 +40,11 @@ struct GrandmaWantsPicsApp: App {
                 .onOpenURL { url in
                     appVM.handleDeepLink(url)
                 }
+                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+                    if let url = activity.webpageURL {
+                        appVM.handleDeepLink(url)
+                    }
+                }
         }
     }
 }
