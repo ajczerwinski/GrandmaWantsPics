@@ -50,6 +50,9 @@
 		E4F5267D348C1F39DCDB8E93 /* AppGroupConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3EB4398E6F491CB1F27956C /* AppGroupConstants.swift */; };
 		F1AC843E9855B312E924F4CE /* AdultInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F64CC73B37B34EDFCC7EE0C0 /* AdultInboxView.swift */; };
 		F1EEFB4445F0376B059368CA /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3DB5FC1E01B640B5D17352B5 /* FirebaseAuth */; };
+		D4E5F6A7B8C9D0E1F2A3B4C5 /* AlbumListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A7B8C9D0E1F2A3B4 /* AlbumListView.swift */; };
+		F6A7B8C9D0E1F2A3B4C5D6E7 /* AddToAlbumSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F6A7B8C9D0E1F2A3B4C5D6 /* AddToAlbumSheet.swift */; };
+		B2C3D4E5F6A7B8C9D0E1F2A3 /* GalleryDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* GalleryDataManager.swift */; };
 		FDC91C428DB1C3358724909C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E48DFE2BAB4E3A9A86437C6 /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
@@ -78,7 +81,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		E5F6A7B8C9D0E1F2A3B4C5D6 /* AddToAlbumSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddToAlbumSheet.swift; sourceTree = "<group>"; };
 		04AC7B2D1F3A9D8C5E2B71A0 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
+		C3D4E5F6A7B8C9D0E1F2A3B4 /* AlbumListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumListView.swift; sourceTree = "<group>"; };
 		0867397282C6D3797F5DAC56 /* GrandmaPhotoViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaPhotoViewer.swift; sourceTree = "<group>"; };
 		0E8268AD6AEA52D68FBAA7BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0FE14D52E63742C9DBEB956E /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -97,6 +102,7 @@
 		5DEDC81060104373627B8306 /* GrandmaGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaGalleryView.swift; sourceTree = "<group>"; };
 		625D146E4B04EB21DCC79F59 /* GrandmaWantsPics.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GrandmaWantsPics.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E1126F61D0FEB3C57E3DD57 /* FamilyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyStore.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* GalleryDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryDataManager.swift; sourceTree = "<group>"; };
 		739D4F8A88CB94AA1E6F5DF6 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		73B701C63C1D6C44D4CE360F /* Configuration.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Configuration.storekit; sourceTree = "<group>"; };
 		8BD4455BFE39420BE58966C6 /* GrandmaWantsPicsWidgetEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaWantsPicsWidgetEntry.swift; sourceTree = "<group>"; };
@@ -152,6 +158,8 @@
 		410649BCC2E9DE61D4BD45FB /* Grandma */ = {
 			isa = PBXGroup;
 			children = (
+				E5F6A7B8C9D0E1F2A3B4C5D6 /* AddToAlbumSheet.swift */,
+				C3D4E5F6A7B8C9D0E1F2A3B4 /* AlbumListView.swift */,
 				5DEDC81060104373627B8306 /* GrandmaGalleryView.swift */,
 				FB69B8425FCB33B39F1E7258 /* GrandmaHomeView.swift */,
 				0867397282C6D3797F5DAC56 /* GrandmaPhotoViewer.swift */,
@@ -270,6 +278,7 @@
 			children = (
 				6E1126F61D0FEB3C57E3DD57 /* FamilyStore.swift */,
 				49B682290847D37D5F166656 /* FirebaseFamilyStore.swift */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* GalleryDataManager.swift */,
 				1E5D189B72460DD42FD4CE7A /* LocalFamilyStore.swift */,
 				9CFE3C1DBED39BD0A9FA156D /* NotificationService.swift */,
 				9783C35EC687A107C44946A3 /* PhotoTTLCleanupService.swift */,
@@ -374,8 +383,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				04AC7B2E1F3A9D8C5E2B71A0 /* ActivityView.swift in Sources */,
+				F6A7B8C9D0E1F2A3B4C5D6E7 /* AddToAlbumSheet.swift in Sources */,
 				F1AC843E9855B312E924F4CE /* AdultInboxView.swift in Sources */,
 				5C4BD5D5312B2D37F751E143 /* AdultRequestDetailView.swift in Sources */,
+				D4E5F6A7B8C9D0E1F2A3B4C5 /* AlbumListView.swift in Sources */,
 				B0C3034B1537D54B9276C3C5 /* AppConfig.swift in Sources */,
 				E4F5267D348C1F39DCDB8E93 /* AppGroupConstants.swift in Sources */,
 				195F8671ADEC178C7EAC9D5A /* AppRole.swift in Sources */,
@@ -385,6 +396,7 @@
 				AA953874085C01C054BADDEA /* Family.swift in Sources */,
 				6FBD38D54C10D5660E846870 /* FamilyStore.swift in Sources */,
 				A61EFA66DF452607C3D578A5 /* FirebaseFamilyStore.swift in Sources */,
+				B2C3D4E5F6A7B8C9D0E1F2A3 /* GalleryDataManager.swift in Sources */,
 				C96EC60F7856EBBB88609306 /* GrandmaGalleryView.swift in Sources */,
 				6CDDBB74DE4401BB27F089F2 /* GrandmaHomeView.swift in Sources */,
 				115CECDBE71D2CC242AD3DA2 /* GrandmaPhotoViewer.swift in Sources */,

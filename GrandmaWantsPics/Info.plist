@@ -27,6 +27,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Save photos from your family to your Camera Roll.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photo library to send pictures to Grandma.</string>
 	<key>UIApplicationSceneManifest</key>

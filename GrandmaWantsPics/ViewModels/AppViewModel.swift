@@ -14,6 +14,7 @@ final class AppViewModel: ObservableObject {
     let store: FamilyStore
     let subscriptionManager = SubscriptionManager()
     let notificationService = NotificationService.shared
+    @Published private(set) var galleryDataManager: GalleryDataManager?
 
     private let roleKey = "selectedRole"
     private let pairedKey = "isPaired"
@@ -79,6 +80,16 @@ final class AppViewModel: ObservableObject {
         // Start listening for real-time updates if paired
         if isPaired {
             store.startListening()
+        }
+
+        // Initialize gallery data manager if familyId is available
+        if let familyId = store.familyId {
+            let manager = GalleryDataManager(familyId: familyId)
+            self.galleryDataManager = manager
+            manager.objectWillChange
+                .receive(on: RunLoop.main)
+                .sink { [weak self] _ in self?.objectWillChange.send() }
+                .store(in: &cancellables)
         }
 
         // Load products and check subscription status
@@ -163,6 +174,7 @@ final class AppViewModel: ObservableObject {
         isPaired = true
         UserDefaults.standard.set(true, forKey: pairedKey)
         store.startListening()
+        ensureGalleryDataManager()
         syncWidgetData()
         Task { await setupNotifications() }
     }
@@ -173,6 +185,7 @@ final class AppViewModel: ObservableObject {
             isPaired = true
             UserDefaults.standard.set(true, forKey: pairedKey)
             store.startListening()
+            ensureGalleryDataManager()
             syncWidgetData()
             await setupNotifications()
             return true
@@ -281,10 +294,21 @@ final class AppViewModel: ObservableObject {
         currentRole = nil
         isPaired = false
         pairingCode = nil
+        galleryDataManager = nil
         UserDefaults.standard.removeObject(forKey: roleKey)
         UserDefaults.standard.removeObject(forKey: pairedKey)
         UserDefaults.standard.removeObject(forKey: "firebase_familyId")
         WidgetDataWriter.write(.empty)
+    }
+
+    private func ensureGalleryDataManager() {
+        guard galleryDataManager == nil, let familyId = store.familyId else { return }
+        let manager = GalleryDataManager(familyId: familyId)
+        self.galleryDataManager = manager
+        manager.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
     }
 
     // MARK: - Notifications
