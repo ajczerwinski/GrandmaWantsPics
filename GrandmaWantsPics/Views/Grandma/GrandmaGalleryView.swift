@@ -10,7 +10,6 @@ struct GrandmaGalleryView: View {
     @EnvironmentObject var appVM: AppViewModel
     @Environment(\.dismiss) var dismiss
     @State private var selectedPhoto: Photo?
-    @State private var loadedImages: [String: UIImage] = [:]
     @State private var galleryFilter: GalleryFilter = .all
     @State private var selectedAlbum: Album?
     @State private var addToAlbumPhoto: Photo?
@@ -65,7 +64,8 @@ struct GrandmaGalleryView: View {
                             AlbumListView(
                                 galleryManager: manager,
                                 allPhotos: allPhotos,
-                                loadedImages: loadedImages,
+                                cacheService: appVM.imageCacheService,
+                                store: appVM.store,
                                 onSelectAlbum: { album in
                                     selectedAlbum = album
                                 }
@@ -103,7 +103,8 @@ struct GrandmaGalleryView: View {
                 GrandmaPhotoViewer(
                     photos: displayedPhotos,
                     initialPhoto: photo,
-                    loadedImages: loadedImages,
+                    cacheService: appVM.imageCacheService,
+                    store: appVM.store,
                     galleryManager: appVM.galleryDataManager
                 )
             }
@@ -111,9 +112,6 @@ struct GrandmaGalleryView: View {
                 if let manager = appVM.galleryDataManager {
                     AddToAlbumSheet(galleryManager: manager, photoId: photo.id)
                 }
-            }
-            .task {
-                await loadAllImages()
             }
         }
     }
@@ -159,31 +157,12 @@ struct GrandmaGalleryView: View {
                     Button {
                         selectedPhoto = photo
                     } label: {
-                        Color.clear
-                            .aspectRatio(1, contentMode: .fit)
-                            .overlay(
-                                Group {
-                                    if let img = loadedImages[photo.id] {
-                                        Image(uiImage: img)
-                                            .resizable()
-                                            .scaledToFill()
-                                    } else {
-                                        Color.gray.opacity(0.2)
-                                            .overlay(ProgressView())
-                                    }
-                                }
-                            )
-                            .overlay(alignment: .topTrailing) {
-                                if let manager = appVM.galleryDataManager,
-                                   manager.isFavorite(photo.id) {
-                                    Image(systemName: "heart.fill")
-                                        .font(.title3)
-                                        .foregroundStyle(.pink)
-                                        .shadow(color: .black.opacity(0.3), radius: 2)
-                                        .padding(8)
-                                }
-                            }
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        CachedPhotoCell(
+                            photo: photo,
+                            cacheService: appVM.imageCacheService,
+                            store: appVM.store,
+                            isFavorite: appVM.galleryDataManager?.isFavorite(photo.id) ?? false
+                        )
                     }
                     .buttonStyle(.plain)
                     .contextMenu {
@@ -209,13 +188,52 @@ struct GrandmaGalleryView: View {
             .padding()
         }
     }
+}
 
-    private func loadAllImages() async {
-        for photo in allPhotos where loadedImages[photo.id] == nil {
-            if let data = try? await appVM.store.loadImageData(for: photo),
-               let img = UIImage(data: data) {
-                loadedImages[photo.id] = img
+// MARK: - CachedPhotoCell
+
+private struct CachedPhotoCell: View {
+    let photo: Photo
+    let cacheService: ImageCacheService?
+    let store: FamilyStore
+    let isFavorite: Bool
+
+    @State private var image: UIImage?
+
+    var body: some View {
+        Color.clear
+            .aspectRatio(1, contentMode: .fit)
+            .overlay(
+                Group {
+                    if let img = image {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Color.gray.opacity(0.2)
+                            .overlay(ProgressView())
+                    }
+                }
+            )
+            .overlay(alignment: .topTrailing) {
+                if isFavorite {
+                    Image(systemName: "heart.fill")
+                        .font(.title3)
+                        .foregroundStyle(.pink)
+                        .shadow(color: .black.opacity(0.3), radius: 2)
+                        .padding(8)
+                }
             }
-        }
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .task(id: photo.id) {
+                if let cacheService {
+                    image = await cacheService.loadImage(for: photo, thumbnail: true, using: store)
+                } else {
+                    // Fallback for local demo mode
+                    if let data = try? await store.loadImageData(for: photo) {
+                        image = UIImage(data: data)
+                    }
+                }
+            }
     }
 }

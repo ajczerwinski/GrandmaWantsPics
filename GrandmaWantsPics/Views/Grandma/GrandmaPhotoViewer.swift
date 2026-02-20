@@ -4,13 +4,15 @@ import Photos
 struct GrandmaPhotoViewer: View {
     let photos: [Photo]
     let initialPhoto: Photo
-    let loadedImages: [String: UIImage]
+    let cacheService: ImageCacheService?
+    let store: FamilyStore
     var galleryManager: GalleryDataManager?
 
     @Environment(\.dismiss) var dismiss
     @State private var currentIndex: Int = 0
     @State private var showAddToAlbum = false
     @State private var showSaveConfirmation = false
+    @State private var loadedFullImages: [String: UIImage] = [:]
 
     private var currentPhoto: Photo? {
         guard photos.indices.contains(currentIndex) else { return nil }
@@ -23,16 +25,15 @@ struct GrandmaPhotoViewer: View {
 
             TabView(selection: $currentIndex) {
                 ForEach(Array(photos.enumerated()), id: \.element.id) { index, photo in
-                    if let img = loadedImages[photo.id] {
-                        Image(uiImage: img)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .tag(index)
-                    } else {
-                        ProgressView()
-                            .tint(.white)
-                            .tag(index)
-                    }
+                    CachedFullSizePage(
+                        photo: photo,
+                        cacheService: cacheService,
+                        store: store,
+                        onLoaded: { image in
+                            loadedFullImages[photo.id] = image
+                        }
+                    )
+                    .tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .automatic))
@@ -150,7 +151,7 @@ struct GrandmaPhotoViewer: View {
     }
 
     private func saveToPhotos(photo: Photo) {
-        guard let image = loadedImages[photo.id] else { return }
+        guard let image = loadedFullImages[photo.id] else { return }
 
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized || status == .limited else { return }
@@ -169,6 +170,63 @@ struct GrandmaPhotoViewer: View {
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+// MARK: - CachedFullSizePage
+
+private struct CachedFullSizePage: View {
+    let photo: Photo
+    let cacheService: ImageCacheService?
+    let store: FamilyStore
+    let onLoaded: (UIImage) -> Void
+
+    @State private var fullImage: UIImage?
+    @State private var thumbnailImage: UIImage?
+
+    var body: some View {
+        Group {
+            if let img = fullImage {
+                Image(uiImage: img)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } else if let thumb = thumbnailImage {
+                Image(uiImage: thumb)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .overlay(
+                        ProgressView()
+                            .tint(.white)
+                    )
+            } else {
+                ProgressView()
+                    .tint(.white)
+            }
+        }
+        .task(id: photo.id) {
+            guard let cacheService else {
+                // Fallback for local demo mode
+                if let data = try? await store.loadImageData(for: photo),
+                   let img = UIImage(data: data) {
+                    fullImage = img
+                    onLoaded(img)
+                }
+                return
+            }
+
+            // Load thumbnail first as placeholder
+            if let thumb = await cacheService.loadImage(for: photo, thumbnail: true, using: store) {
+                if fullImage == nil {
+                    thumbnailImage = thumb
+                }
+            }
+
+            // Then load full-size
+            if let full = await cacheService.loadImage(for: photo, thumbnail: false, using: store) {
+                fullImage = full
+                onLoaded(full)
             }
         }
     }

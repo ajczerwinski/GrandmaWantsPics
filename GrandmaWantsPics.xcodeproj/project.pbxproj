@@ -53,6 +53,7 @@
 		D4E5F6A7B8C9D0E1F2A3B4C5 /* AlbumListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A7B8C9D0E1F2A3B4 /* AlbumListView.swift */; };
 		F6A7B8C9D0E1F2A3B4C5D6E7 /* AddToAlbumSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F6A7B8C9D0E1F2A3B4C5D6 /* AddToAlbumSheet.swift */; };
 		B2C3D4E5F6A7B8C9D0E1F2A3 /* GalleryDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* GalleryDataManager.swift */; };
+		4B8C9D0E1F2A3B4C5D6E7F8A /* ImageCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A7B8C9D0E1F2A3B4C5D6E7F /* ImageCacheService.swift */; };
 		FDC91C428DB1C3358724909C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E48DFE2BAB4E3A9A86437C6 /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
@@ -103,6 +104,7 @@
 		625D146E4B04EB21DCC79F59 /* GrandmaWantsPics.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GrandmaWantsPics.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E1126F61D0FEB3C57E3DD57 /* FamilyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyStore.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* GalleryDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryDataManager.swift; sourceTree = "<group>"; };
+		3A7B8C9D0E1F2A3B4C5D6E7F /* ImageCacheService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheService.swift; sourceTree = "<group>"; };
 		739D4F8A88CB94AA1E6F5DF6 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		73B701C63C1D6C44D4CE360F /* Configuration.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Configuration.storekit; sourceTree = "<group>"; };
 		8BD4455BFE39420BE58966C6 /* GrandmaWantsPicsWidgetEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaWantsPicsWidgetEntry.swift; sourceTree = "<group>"; };
@@ -279,6 +281,7 @@
 				6E1126F61D0FEB3C57E3DD57 /* FamilyStore.swift */,
 				49B682290847D37D5F166656 /* FirebaseFamilyStore.swift */,
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* GalleryDataManager.swift */,
+				3A7B8C9D0E1F2A3B4C5D6E7F /* ImageCacheService.swift */,
 				1E5D189B72460DD42FD4CE7A /* LocalFamilyStore.swift */,
 				9CFE3C1DBED39BD0A9FA156D /* NotificationService.swift */,
 				9783C35EC687A107C44946A3 /* PhotoTTLCleanupService.swift */,
@@ -401,6 +404,7 @@
 				6CDDBB74DE4401BB27F089F2 /* GrandmaHomeView.swift in Sources */,
 				115CECDBE71D2CC242AD3DA2 /* GrandmaPhotoViewer.swift in Sources */,
 				A1770E4D638AA46F86CB8447 /* GrandmaWantsPicsApp.swift in Sources */,
+				4B8C9D0E1F2A3B4C5D6E7F8A /* ImageCacheService.swift in Sources */,
 				AE1F1B5E384F7D55C157C96F /* LocalFamilyStore.swift in Sources */,
 				4096209D90D5BC9D2A8E0E96 /* NotificationService.swift in Sources */,
 				06AA0A191C68F2901B706B70 /* PairingView.swift in Sources */,

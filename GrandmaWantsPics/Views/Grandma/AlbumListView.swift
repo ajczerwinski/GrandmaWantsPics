@@ -3,7 +3,8 @@ import SwiftUI
 struct AlbumListView: View {
     @ObservedObject var galleryManager: GalleryDataManager
     let allPhotos: [Photo]
-    let loadedImages: [String: UIImage]
+    let cacheService: ImageCacheService?
+    let store: FamilyStore
     let onSelectAlbum: (Album) -> Void
 
     @State private var showNewAlbumAlert = false
@@ -40,46 +41,13 @@ struct AlbumListView: View {
                             Button {
                                 onSelectAlbum(album)
                             } label: {
-                                HStack(spacing: 14) {
-                                    // Cover thumbnail
-                                    if let firstId = album.photoIds.first,
-                                       let img = loadedImages[firstId] {
-                                        Image(uiImage: img)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 70, height: 70)
-                                            .clipped()
-                                            .cornerRadius(10)
-                                    } else {
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .fill(Color.gray.opacity(0.2))
-                                            .frame(width: 70, height: 70)
-                                            .overlay(
-                                                Image(systemName: "photo")
-                                                    .font(.title2)
-                                                    .foregroundStyle(.gray)
-                                            )
-                                    }
-
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(album.name)
-                                            .font(.title3.bold())
-                                            .foregroundStyle(.primary)
-                                        Text("\(albumPhotos.count) photo\(albumPhotos.count == 1 ? "" : "s")")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                    }
-
-                                    Spacer()
-
-                                    Image(systemName: "chevron.right")
-                                        .font(.title3)
-                                        .foregroundStyle(.secondary)
-                                }
-                                .padding()
-                                .background(Color(.systemBackground))
-                                .cornerRadius(14)
-                                .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                                AlbumRow(
+                                    album: album,
+                                    photoCount: albumPhotos.count,
+                                    coverPhoto: album.photoIds.first.flatMap { id in allPhotos.first { $0.id == id } },
+                                    cacheService: cacheService,
+                                    store: store
+                                )
                             }
                             .buttonStyle(.plain)
                             .contextMenu {
@@ -106,6 +74,70 @@ struct AlbumListView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Enter a name for your new album.")
+        }
+    }
+}
+
+// MARK: - AlbumRow
+
+private struct AlbumRow: View {
+    let album: Album
+    let photoCount: Int
+    let coverPhoto: Photo?
+    let cacheService: ImageCacheService?
+    let store: FamilyStore
+
+    @State private var coverImage: UIImage?
+
+    var body: some View {
+        HStack(spacing: 14) {
+            // Cover thumbnail
+            if let img = coverImage {
+                Image(uiImage: img)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 70, height: 70)
+                    .clipped()
+                    .cornerRadius(10)
+            } else {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray.opacity(0.2))
+                    .frame(width: 70, height: 70)
+                    .overlay(
+                        Image(systemName: "photo")
+                            .font(.title2)
+                            .foregroundStyle(.gray)
+                    )
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(album.name)
+                    .font(.title3.bold())
+                    .foregroundStyle(.primary)
+                Text("\(photoCount) photo\(photoCount == 1 ? "" : "s")")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(14)
+        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+        .task(id: coverPhoto?.id) {
+            guard let photo = coverPhoto else { return }
+            if let cacheService {
+                coverImage = await cacheService.loadImage(for: photo, thumbnail: true, using: store)
+            } else {
+                if let data = try? await store.loadImageData(for: photo) {
+                    coverImage = UIImage(data: data)
+                }
+            }
         }
     }
 }

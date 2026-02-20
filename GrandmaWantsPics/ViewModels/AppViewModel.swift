@@ -15,6 +15,7 @@ final class AppViewModel: ObservableObject {
     let subscriptionManager = SubscriptionManager()
     let notificationService = NotificationService.shared
     @Published private(set) var galleryDataManager: GalleryDataManager?
+    private(set) var imageCacheService: ImageCacheService?
 
     private let roleKey = "selectedRole"
     private let pairedKey = "isPaired"
@@ -92,6 +93,11 @@ final class AppViewModel: ObservableObject {
                 .store(in: &cancellables)
         }
 
+        // Initialize image cache service for Firebase mode
+        if AppConfig.useFirebase {
+            self.imageCacheService = ImageCacheService()
+        }
+
         // Load products and check subscription status
         Task {
             await subscriptionManager.loadProducts()
@@ -133,6 +139,10 @@ final class AppViewModel: ObservableObject {
         guard isFreeTier else { return }
         let cleanup = PhotoTTLCleanupService(store: store)
         await cleanup.deleteExpiredPhotos()
+
+        // Evict cached images for photos that no longer exist
+        let remainingPhotos = store.allPhotos.values.flatMap { $0 }
+        imageCacheService?.evictExpired(photos: remainingPhotos)
     }
 
     // MARK: - Subscription
@@ -295,6 +305,7 @@ final class AppViewModel: ObservableObject {
         isPaired = false
         pairingCode = nil
         galleryDataManager = nil
+        imageCacheService?.clearAll()
         UserDefaults.standard.removeObject(forKey: roleKey)
         UserDefaults.standard.removeObject(forKey: pairedKey)
         UserDefaults.standard.removeObject(forKey: "firebase_familyId")
