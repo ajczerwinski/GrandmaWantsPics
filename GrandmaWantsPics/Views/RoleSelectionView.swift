@@ -48,6 +48,15 @@ struct RoleSelectionView: View {
                 .buttonStyle(.plain)
             }
             .padding(.horizontal, 32)
+
+            Button {
+                appVM.showSignIn = true
+            } label: {
+                Text("Already have an account? Sign in")
+                    .font(.callout)
+                    .foregroundStyle(.blue)
+            }
+            .padding(.top, 8)
         }
         .padding()
     }

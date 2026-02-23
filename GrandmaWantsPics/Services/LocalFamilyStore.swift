@@ -56,6 +56,45 @@ final class LocalFamilyStore: FamilyStore {
         return request
     }
 
+    override func sendPhotos(imageDataList: [Data]) async throws {
+        let requestId = UUID().uuidString
+        let now = Date()
+
+        // Create request born as fulfilled
+        let request = PhotoRequest(
+            id: requestId,
+            familyId: familyId ?? "local-demo",
+            createdAt: now,
+            createdByUserId: "local-adult",
+            fromRole: "adult",
+            status: .fulfilled,
+            fulfilledAt: now,
+            fulfilledByUserId: "local-adult"
+        )
+
+        var photos: [Photo] = []
+        for data in imageDataList {
+            let photoId = UUID().uuidString
+            let filename = "\(photoId).jpg"
+            let fileURL = storageDir.appendingPathComponent(filename)
+            try data.write(to: fileURL)
+
+            var photo = Photo(
+                id: photoId,
+                requestId: requestId,
+                createdAt: Date(),
+                createdByUserId: "local-adult",
+                storagePath: fileURL.path
+            )
+            photo.imageData = data
+            photos.append(photo)
+        }
+
+        allPhotos[requestId] = photos
+        requests.insert(request, at: 0)
+        saveToDisk()
+    }
+
     override func fulfillRequest(_ requestId: String, imageDataList: [Data]) async throws {
         guard let idx = requests.firstIndex(where: { $0.id == requestId }) else {
             throw LocalStoreError.requestNotFound

@@ -12,7 +12,7 @@ final class FirebaseFamilyStore: FamilyStore {
     private var requestsListener: ListenerRegistration?
     private var photosListeners: [String: ListenerRegistration] = [:]
 
-    private var currentUserId: String? { Auth.auth().currentUser?.uid }
+    var authService: AuthService?
 
     override init() {
         super.init()
@@ -20,19 +20,11 @@ final class FirebaseFamilyStore: FamilyStore {
         familyId = UserDefaults.standard.string(forKey: "firebase_familyId")
     }
 
-    // MARK: - Auth
-
-    func ensureSignedIn() async throws {
-        if Auth.auth().currentUser == nil {
-            try await Auth.auth().signInAnonymously()
-        }
-    }
-
     // MARK: - Family / Pairing
 
     override func createFamily() async throws -> Family {
-        try await ensureSignedIn()
-        guard let uid = currentUserId else { throw StoreError.notAuthenticated }
+        try await authService?.ensureSignedIn()
+        guard let uid = authService?.currentUserId else { throw StoreError.notAuthenticated }
 
         let code = UUID().uuidString
         let now = Date()
@@ -58,6 +50,7 @@ final class FirebaseFamilyStore: FamilyStore {
         try await familyRef.collection("connections").addDocument(data: [
             "userId": uid,
             "role": "adult",
+            "authProvider": authService?.currentAuthProvider ?? "anonymous",
             "createdAt": Timestamp(date: Date())
         ])
 
@@ -67,8 +60,8 @@ final class FirebaseFamilyStore: FamilyStore {
     }
 
     override func joinFamily(pairingCode: String, asRole: String = "grandma") async throws -> Family {
-        try await ensureSignedIn()
-        guard let uid = currentUserId else { throw StoreError.notAuthenticated }
+        try await authService?.ensureSignedIn()
+        guard let uid = authService?.currentUserId else { throw StoreError.notAuthenticated }
 
         let snapshot = try await db.collection("families")
             .whereField("pairingCode", isEqualTo: pairingCode)
@@ -99,6 +92,7 @@ final class FirebaseFamilyStore: FamilyStore {
         try await doc.reference.collection("connections").addDocument(data: [
             "userId": uid,
             "role": asRole,
+            "authProvider": authService?.currentAuthProvider ?? "anonymous",
             "createdAt": Timestamp(date: Date())
         ])
 
@@ -110,8 +104,8 @@ final class FirebaseFamilyStore: FamilyStore {
     // MARK: - Requests
 
     override func createRequest() async throws -> PhotoRequest {
-        try await ensureSignedIn()
-        guard let fid = familyId, let uid = currentUserId else { throw StoreError.notPaired }
+        try await authService?.ensureSignedIn()
+        guard let fid = familyId, let uid = authService?.currentUserId else { throw StoreError.notPaired }
 
         let ref = db.collection("families").document(fid).collection("requests").document()
         let now = Date()
@@ -131,9 +125,55 @@ final class FirebaseFamilyStore: FamilyStore {
         )
     }
 
+    override func sendPhotos(imageDataList: [Data]) async throws {
+        try await authService?.ensureSignedIn()
+        guard let fid = familyId, let uid = authService?.currentUserId else { throw StoreError.notPaired }
+
+        let requestRef = db.collection("families").document(fid).collection("requests").document()
+        let now = Date()
+
+        // Create request born as fulfilled
+        try await requestRef.setData([
+            "createdAt": Timestamp(date: now),
+            "createdByUserId": uid,
+            "fromRole": "adult",
+            "status": "fulfilled",
+            "fulfilledAt": Timestamp(date: now),
+            "fulfilledByUserId": uid
+        ])
+
+        // Upload each photo
+        for data in imageDataList {
+            let photoId = UUID().uuidString
+            let storagePath = "families/\(fid)/requests/\(requestRef.documentID)/\(photoId).jpg"
+            let storageRef = storage.reference().child(storagePath)
+
+            let metadata = StorageMetadata()
+            metadata.contentType = "image/jpeg"
+            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<StorageMetadata, Error>) in
+                storageRef.putData(data, metadata: metadata) { result, error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                    } else if let result {
+                        continuation.resume(returning: result)
+                    } else {
+                        continuation.resume(throwing: StoreError.notAuthenticated)
+                    }
+                }
+            }
+
+            // Write photo document
+            try await requestRef.collection("photos").document(photoId).setData([
+                "createdAt": Timestamp(date: Date()),
+                "createdByUserId": uid,
+                "storagePath": storagePath
+            ])
+        }
+    }
+
     override func fulfillRequest(_ requestId: String, imageDataList: [Data]) async throws {
-        try await ensureSignedIn()
-        guard let fid = familyId, let uid = currentUserId else { throw StoreError.notPaired }
+        try await authService?.ensureSignedIn()
+        guard let fid = familyId, let uid = authService?.currentUserId else { throw StoreError.notPaired }
 
         let requestRef = db.collection("families").document(fid)
             .collection("requests").document(requestId)
@@ -277,7 +317,7 @@ final class FirebaseFamilyStore: FamilyStore {
     // MARK: - FCM Token
 
     override func saveFCMToken(_ token: String) async throws {
-        guard let fid = familyId, let uid = currentUserId else { throw StoreError.notPaired }
+        guard let fid = familyId, let uid = authService?.currentUserId else { throw StoreError.notPaired }
 
         let snapshot = try await db.collection("families").document(fid)
             .collection("connections")

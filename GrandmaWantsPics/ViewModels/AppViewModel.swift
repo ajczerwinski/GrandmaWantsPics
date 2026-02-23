@@ -10,8 +10,13 @@ final class AppViewModel: ObservableObject {
     @Published var isPaired: Bool = false
     @Published var pairingCode: String?
     @Published var isCheckingClipboard: Bool = false
+    @Published var showSignIn: Bool = false
+    @Published var isRecoveringAccount: Bool = false
+    @Published var recoveryError: String?
+    @Published var showAccountNudge: Bool = false
 
     let store: FamilyStore
+    let authService = AuthService()
     let subscriptionManager = SubscriptionManager()
     let notificationService = NotificationService.shared
     @Published private(set) var galleryDataManager: GalleryDataManager?
@@ -19,6 +24,8 @@ final class AppViewModel: ObservableObject {
 
     private let roleKey = "selectedRole"
     private let pairedKey = "isPaired"
+    private let pairingCodeKey = "pendingPairingCode"
+    private let hasSeenAccountNudgeKey = "hasSeenAccountNudge"
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Subscription Tier
@@ -34,13 +41,21 @@ final class AppViewModel: ObservableObject {
     init() {
         // Choose store based on config
         if AppConfig.useFirebase {
-            self.store = FirebaseFamilyStore()
+            let firebaseStore = FirebaseFamilyStore()
+            firebaseStore.authService = authService
+            self.store = firebaseStore
         } else {
             self.store = LocalFamilyStore()
         }
 
         // Forward store's objectWillChange so views update
         store.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+
+        // Forward authService's objectWillChange so views update
+        authService.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
@@ -66,6 +81,7 @@ final class AppViewModel: ObservableObject {
             currentRole = role
         }
         isPaired = UserDefaults.standard.bool(forKey: pairedKey)
+        pairingCode = UserDefaults.standard.string(forKey: pairingCodeKey)
 
         // In local demo, auto-pair
         if !AppConfig.useFirebase {
@@ -151,7 +167,9 @@ final class AppViewModel: ObservableObject {
         do {
             try await store.updateSubscriptionTier(subscriptionTier)
         } catch {
+            #if DEBUG
             print("Failed to sync subscription tier: \(error)")
+            #endif
         }
     }
 
@@ -173,16 +191,20 @@ final class AppViewModel: ObservableObject {
         do {
             let family = try await store.createFamily()
             pairingCode = family.pairingCode
+            UserDefaults.standard.set(family.pairingCode, forKey: pairingCodeKey)
             // Don't set isPaired yet — let the user see the code first
             // and tap "Continue" to proceed
         } catch {
+            #if DEBUG
             print("Create family error: \(error)")
+            #endif
         }
     }
 
     func confirmPairing() {
         isPaired = true
         UserDefaults.standard.set(true, forKey: pairedKey)
+        UserDefaults.standard.removeObject(forKey: pairingCodeKey)
         store.startListening()
         ensureGalleryDataManager()
         syncWidgetData()
@@ -200,9 +222,59 @@ final class AppViewModel: ObservableObject {
             await setupNotifications()
             return true
         } catch {
+            #if DEBUG
             print("Join family error: \(error)")
+            #endif
             return false
         }
+    }
+
+    // MARK: - Account Recovery
+
+    func recoverAccount() async {
+        isRecoveringAccount = true
+        recoveryError = nil
+        defer { isRecoveringAccount = false }
+
+        do {
+            guard let familyId = try await authService.recoverFamilyId() else {
+                recoveryError = "No family found for this account."
+                return
+            }
+
+            guard let roleString = try await authService.recoverConnectionRole(),
+                  let role = AppRole(rawValue: roleString) else {
+                recoveryError = "Could not determine your role."
+                return
+            }
+
+            // Restore state
+            store.familyId = familyId
+            UserDefaults.standard.set(familyId, forKey: "firebase_familyId")
+            selectRole(role)
+            isPaired = true
+            UserDefaults.standard.set(true, forKey: pairedKey)
+            store.startListening()
+            ensureGalleryDataManager()
+            syncWidgetData()
+            showSignIn = false
+            await setupNotifications()
+        } catch {
+            recoveryError = "Recovery failed: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - Account Nudge
+
+    func triggerAccountNudgeIfNeeded() {
+        guard !authService.isLinked,
+              !UserDefaults.standard.bool(forKey: hasSeenAccountNudgeKey) else { return }
+        showAccountNudge = true
+    }
+
+    func dismissAccountNudge() {
+        showAccountNudge = false
+        UserDefaults.standard.set(true, forKey: hasSeenAccountNudgeKey)
     }
 
     // MARK: - Share Link
@@ -283,15 +355,15 @@ final class AppViewModel: ObservableObject {
         // Validate role
         guard let appRole = AppRole(rawValue: payload.role) else { return false }
 
-        // Clear clipboard to prevent re-triggering
-        UIPasteboard.general.string = ""
-
-        // Set role and join
+        // Set role and attempt to join — only clear clipboard on success
         selectRole(appRole)
         let success = await joinFamily(code: payload.code, asRole: payload.role)
 
-        if !success {
-            // Reset role so user sees normal selection flow
+        if success {
+            // Clear clipboard only after successful join to prevent re-triggering
+            UIPasteboard.general.string = ""
+        } else {
+            // Reset role so user sees normal selection flow and can retry
             currentRole = nil
             UserDefaults.standard.removeObject(forKey: roleKey)
         }
@@ -301,14 +373,20 @@ final class AppViewModel: ObservableObject {
 
     func resetAll() {
         store.stopListening()
+        try? authService.signOut()
         currentRole = nil
         isPaired = false
         pairingCode = nil
+        showSignIn = false
+        isRecoveringAccount = false
+        showAccountNudge = false
         galleryDataManager = nil
         imageCacheService?.clearAll()
         UserDefaults.standard.removeObject(forKey: roleKey)
         UserDefaults.standard.removeObject(forKey: pairedKey)
+        UserDefaults.standard.removeObject(forKey: pairingCodeKey)
         UserDefaults.standard.removeObject(forKey: "firebase_familyId")
+        UserDefaults.standard.removeObject(forKey: hasSeenAccountNudgeKey)
         WidgetDataWriter.write(.empty)
     }
 

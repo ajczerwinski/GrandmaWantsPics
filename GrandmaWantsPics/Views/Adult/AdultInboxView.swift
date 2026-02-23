@@ -4,6 +4,8 @@ struct AdultInboxView: View {
     @EnvironmentObject var appVM: AppViewModel
     @State private var selectedRequest: PhotoRequest?
     @State private var showSubscriptionSheet = false
+    @State private var showSendPhotosSheet = false
+    @State private var showAccountSheet = false
 
     var body: some View {
         NavigationStack {
@@ -12,10 +14,43 @@ struct AdultInboxView: View {
                     ContentUnavailableView(
                         "No requests yet",
                         systemImage: "tray",
-                        description: Text("When Grandma taps her button,\nher request will appear here.")
+                        description: Text("When Grandma taps her button, her request will appear here. You can also send photos anytime!")
                     )
                 } else {
                     List {
+                        if appVM.showAccountNudge && !appVM.authService.isLinked {
+                            Section {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "shield.fill")
+                                        .foregroundStyle(.blue)
+                                        .font(.title3)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Protect your photos")
+                                            .font(.subheadline.bold())
+                                        Text("Link an email so you never lose them.")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Button("Link Account") {
+                                        showAccountSheet = true
+                                    }
+                                    .font(.caption.bold())
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(.blue)
+                                    Button {
+                                        appVM.dismissAccountNudge()
+                                    } label: {
+                                        Image(systemName: "xmark")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+
                         if appVM.isFreeTier {
                             Section {
                                 HStack(spacing: 12) {
@@ -48,7 +83,7 @@ struct AdultInboxView: View {
                                 } label: {
                                     HStack {
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Text("Photo Request")
+                                            Text(request.fromRole == "adult" ? "Sent Photos" : "Photo Request")
                                                 .font(.headline)
                                             Text(request.createdAt.formatted(date: .abbreviated, time: .shortened))
                                                 .font(.subheadline)
@@ -69,8 +104,27 @@ struct AdultInboxView: View {
             }
             .navigationTitle("Inbox")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showSendPhotosSheet = true
+                    } label: {
+                        Image(systemName: "camera.fill")
+                            .font(.body)
+                            .foregroundStyle(.pink)
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
+                        Button {
+                            showAccountSheet = true
+                        } label: {
+                            if appVM.authService.isLinked {
+                                Label("Account", systemImage: "person.crop.circle.badge.checkmark")
+                            } else {
+                                Label("Protect Account", systemImage: "shield")
+                            }
+                        }
+
                         Button {
                             showSubscriptionSheet = true
                         } label: {
@@ -81,6 +135,7 @@ struct AdultInboxView: View {
                             }
                         }
 
+                        #if DEBUG
                         Divider()
 
                         Button(role: .destructive) {
@@ -94,6 +149,7 @@ struct AdultInboxView: View {
                         } label: {
                             Label("Reset App", systemImage: "trash")
                         }
+                        #endif
                     } label: {
                         Image(systemName: "gearshape")
                             .font(.body)
@@ -105,8 +161,20 @@ struct AdultInboxView: View {
                 AdultRequestDetailView(request: request)
                     .environmentObject(appVM)
             }
+            .sheet(isPresented: $showSendPhotosSheet) {
+                AdultSendPhotosView()
+                    .environmentObject(appVM)
+            }
             .sheet(isPresented: $showSubscriptionSheet) {
                 SubscriptionView()
+                    .environmentObject(appVM)
+            }
+            .sheet(isPresented: $showAccountSheet, onDismiss: {
+                if appVM.authService.isLinked {
+                    appVM.dismissAccountNudge()
+                }
+            }) {
+                AccountView()
                     .environmentObject(appVM)
             }
         }

@@ -26,7 +26,9 @@ final class NotificationService: NSObject, ObservableObject {
             }
             return granted
         } catch {
+            #if DEBUG
             print("Notification permission error: \(error)")
+            #endif
             return false
         }
     }
@@ -47,7 +49,9 @@ final class NotificationService: NSObject, ObservableObject {
             fcmToken = token
             try await store.saveFCMToken(token)
         } catch {
+            #if DEBUG
             print("Failed to save FCM token: \(error)")
+            #endif
         }
     }
 }
@@ -61,7 +65,9 @@ extension NotificationService: MessagingDelegate {
         didReceiveRegistrationToken fcmToken: String?
     ) {
         guard let fcmToken else { return }
+        #if DEBUG
         print("FCM token: \(fcmToken)")
+        #endif
         Task { @MainActor in
             self.fcmToken = fcmToken
         }

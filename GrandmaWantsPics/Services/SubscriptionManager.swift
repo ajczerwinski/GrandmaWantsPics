@@ -29,7 +29,9 @@ final class SubscriptionManager: ObservableObject {
                 Self.yearlyProductId
             ])
         } catch {
+            #if DEBUG
             print("Failed to load products: \(error)")
+            #endif
         }
     }
 

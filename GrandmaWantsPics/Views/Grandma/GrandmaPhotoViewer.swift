@@ -9,10 +9,13 @@ struct GrandmaPhotoViewer: View {
     var galleryManager: GalleryDataManager?
 
     @Environment(\.dismiss) var dismiss
+    @Environment(\.verticalSizeClass) var verticalSizeClass
     @State private var currentIndex: Int = 0
     @State private var showAddToAlbum = false
     @State private var showSaveConfirmation = false
     @State private var loadedFullImages: [String: UIImage] = [:]
+
+    private var isLandscape: Bool { verticalSizeClass == .compact }
 
     private var currentPhoto: Photo? {
         guard photos.indices.contains(currentIndex) else { return nil }
@@ -23,20 +26,11 @@ struct GrandmaPhotoViewer: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            TabView(selection: $currentIndex) {
-                ForEach(Array(photos.enumerated()), id: \.element.id) { index, photo in
-                    CachedFullSizePage(
-                        photo: photo,
-                        cacheService: cacheService,
-                        store: store,
-                        onLoaded: { image in
-                            loadedFullImages[photo.id] = image
-                        }
-                    )
-                    .tag(index)
-                }
+            if isLandscape {
+                landscapeLayout
+            } else {
+                portraitLayout
             }
-            .tabViewStyle(.page(indexDisplayMode: .automatic))
 
             // Close button
             VStack {
@@ -54,23 +48,6 @@ struct GrandmaPhotoViewer: View {
                 Spacer()
             }
 
-            // Bottom area: counter + action bar
-            VStack {
-                Spacer()
-
-                Text("\(currentIndex + 1) of \(photos.count)")
-                    .font(.headline)
-                    .foregroundStyle(.white.opacity(0.7))
-                    .padding(.bottom, 8)
-
-                if let manager = galleryManager, let photo = currentPhoto {
-                    actionBar(manager: manager, photo: photo)
-                        .padding(.bottom, 40)
-                } else {
-                    Spacer().frame(height: 40)
-                }
-            }
-
             // Save confirmation toast
             if showSaveConfirmation {
                 VStack {
@@ -82,7 +59,7 @@ struct GrandmaPhotoViewer: View {
                         .padding(.vertical, 14)
                         .background(Color.green.cornerRadius(14))
                         .shadow(radius: 8)
-                        .padding(.bottom, 140)
+                        .padding(.bottom, isLandscape ? 20 : 140)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
                 .animation(.easeInOut, value: showSaveConfirmation)
@@ -100,54 +77,173 @@ struct GrandmaPhotoViewer: View {
         }
     }
 
-    private func actionBar(manager: GalleryDataManager, photo: Photo) -> some View {
-        HStack(spacing: 32) {
-            // Favorite button
-            Button {
-                manager.toggleFavorite(photo.id)
-            } label: {
-                VStack(spacing: 4) {
-                    Image(systemName: manager.isFavorite(photo.id) ? "heart.fill" : "heart")
-                        .font(.system(size: 28))
-                        .foregroundStyle(manager.isFavorite(photo.id) ? .pink : .white)
-                    Text("Favorite")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.8))
-                }
-            }
+    // MARK: - Portrait Layout (action bar at bottom)
 
-            // Save button
-            Button {
-                saveToPhotos(photo: photo)
-            } label: {
-                VStack(spacing: 4) {
-                    Image(systemName: "square.and.arrow.down")
-                        .font(.system(size: 28))
-                        .foregroundStyle(.white)
-                    Text("Save")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.8))
-                }
-            }
+    private var portraitLayout: some View {
+        ZStack {
+            photoTabView
 
-            // Album button
-            Button {
-                showAddToAlbum = true
-            } label: {
-                VStack(spacing: 4) {
-                    Image(systemName: "rectangle.stack.badge.plus")
-                        .font(.system(size: 28))
-                        .foregroundStyle(.white)
-                    Text("Album")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.8))
+            VStack {
+                Spacer()
+
+                Text("\(currentIndex + 1) of \(photos.count)")
+                    .font(.headline)
+                    .foregroundStyle(.white.opacity(0.7))
+                    .padding(.bottom, 8)
+
+                if let manager = galleryManager, let photo = currentPhoto {
+                    portraitActionBar(manager: manager, photo: photo)
+                        .padding(.bottom, 40)
+                } else {
+                    Spacer().frame(height: 40)
                 }
             }
         }
+    }
+
+    // MARK: - Landscape Layout (action bar on trailing side)
+
+    private var landscapeLayout: some View {
+        HStack(spacing: 0) {
+            ZStack {
+                photoTabView
+
+                VStack {
+                    Spacer()
+                    Text("\(currentIndex + 1) of \(photos.count)")
+                        .font(.headline)
+                        .foregroundStyle(.white.opacity(0.7))
+                        .padding(.bottom, 12)
+                }
+            }
+
+            if let manager = galleryManager, let photo = currentPhoto {
+                landscapeActionBar(manager: manager, photo: photo)
+            }
+        }
+    }
+
+    private var photoTabView: some View {
+        TabView(selection: $currentIndex) {
+            ForEach(Array(photos.enumerated()), id: \.element.id) { index, photo in
+                CachedFullSizePage(
+                    photo: photo,
+                    cacheService: cacheService,
+                    store: store,
+                    onLoaded: { image in
+                        loadedFullImages[photo.id] = image
+                    }
+                )
+                .tag(index)
+            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: .automatic))
+    }
+
+    // MARK: - Portrait Action Bar (full-width rows at bottom)
+
+    private func portraitActionBar(manager: GalleryDataManager, photo: Photo) -> some View {
+        VStack(spacing: 10) {
+            actionButton(
+                icon: manager.isFavorite(photo.id) ? "heart.fill" : "heart",
+                label: manager.isFavorite(photo.id) ? "Favorited" : "Favorite",
+                iconColor: manager.isFavorite(photo.id) ? .pink : .white
+            ) {
+                manager.toggleFavorite(photo.id)
+            }
+
+            actionButton(
+                icon: "square.and.arrow.down",
+                label: "Save to Camera Roll",
+                iconColor: .white
+            ) {
+                saveToPhotos(photo: photo)
+            }
+
+            actionButton(
+                icon: "rectangle.stack.badge.plus",
+                label: "Add to Album",
+                iconColor: .white
+            ) {
+                showAddToAlbum = true
+            }
+        }
         .padding(.horizontal, 24)
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
         .background(.ultraThinMaterial.opacity(0.6))
         .cornerRadius(20)
+    }
+
+    private func actionButton(icon: String, label: String, iconColor: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 22))
+                    .foregroundStyle(iconColor)
+                Text(label)
+                    .font(.body.bold())
+                    .foregroundStyle(.white)
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(.white.opacity(0.15))
+            .cornerRadius(14)
+        }
+    }
+
+    // MARK: - Landscape Action Bar (compact column on trailing side)
+
+    private func landscapeActionBar(manager: GalleryDataManager, photo: Photo) -> some View {
+        VStack(spacing: 12) {
+            Spacer()
+
+            compactActionButton(
+                icon: manager.isFavorite(photo.id) ? "heart.fill" : "heart",
+                label: manager.isFavorite(photo.id) ? "Favorited" : "Favorite",
+                iconColor: manager.isFavorite(photo.id) ? .pink : .white
+            ) {
+                manager.toggleFavorite(photo.id)
+            }
+
+            compactActionButton(
+                icon: "square.and.arrow.down",
+                label: "Save",
+                iconColor: .white
+            ) {
+                saveToPhotos(photo: photo)
+            }
+
+            compactActionButton(
+                icon: "rectangle.stack.badge.plus",
+                label: "Album",
+                iconColor: .white
+            ) {
+                showAddToAlbum = true
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .frame(width: 90)
+        .background(.ultraThinMaterial.opacity(0.6))
+    }
+
+    private func compactActionButton(icon: String, label: String, iconColor: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                    .foregroundStyle(iconColor)
+                Text(label)
+                    .font(.caption.bold())
+                    .foregroundStyle(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+            }
+            .frame(width: 66, height: 60)
+            .background(.white.opacity(0.15))
+            .cornerRadius(12)
+        }
     }
 
     private func saveToPhotos(photo: Photo) {

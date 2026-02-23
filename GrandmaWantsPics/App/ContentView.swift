@@ -7,6 +7,10 @@ struct ContentView: View {
         Group {
             if appVM.isCheckingClipboard {
                 ProgressView("Connecting...")
+            } else if appVM.isRecoveringAccount {
+                ProgressView("Recovering your family...")
+            } else if appVM.showSignIn {
+                SignInView()
             } else if let role = appVM.currentRole {
                 if appVM.isPaired {
                     switch role {

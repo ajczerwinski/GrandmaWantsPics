@@ -1,8 +1,7 @@
 import SwiftUI
 import PhotosUI
 
-struct AdultRequestDetailView: View {
-    let request: PhotoRequest
+struct AdultSendPhotosView: View {
     @EnvironmentObject var appVM: AppViewModel
     @Environment(\.dismiss) var dismiss
 
@@ -12,28 +11,20 @@ struct AdultRequestDetailView: View {
     @State private var errorMessage: String?
     @State private var didSend = false
 
-    private var isFulfilled: Bool {
-        // Check live store state
-        appVM.store.requests.first(where: { $0.id == request.id })?.status == .fulfilled
-    }
-
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                // Request info
+                // Header
                 VStack(spacing: 8) {
-                    Image(systemName: "heart.fill")
+                    Image(systemName: "camera.fill")
                         .font(.system(size: 40))
                         .foregroundStyle(.pink)
-                    Text("Grandma wants pictures!")
+                    Text("Send photos to Grandma")
                         .font(.title2.bold())
-                    Text(request.createdAt.formatted(date: .abbreviated, time: .shortened))
-                        .foregroundStyle(.secondary)
                 }
                 .padding(.top, 24)
 
-                if isFulfilled || didSend {
-                    // Already fulfilled — show sent photos with TTL badges
+                if didSend {
                     VStack(spacing: 12) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 50))
@@ -42,33 +33,6 @@ struct AdultRequestDetailView: View {
                             .font(.title3.bold())
                     }
                     .padding(.top, 20)
-
-                    if appVM.isFreeTier {
-                        let photos = appVM.store.photos(for: request.id)
-                        let expiringPhotos = photos.filter { $0.daysUntilExpiry <= 7 && !$0.isExpired }
-                        if !expiringPhotos.isEmpty {
-                            VStack(spacing: 8) {
-                                ForEach(expiringPhotos) { photo in
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "clock")
-                                            .foregroundStyle(.orange)
-                                        Text("\(photo.daysUntilExpiry)d left")
-                                            .font(.caption.bold())
-                                            .foregroundStyle(.orange)
-                                        Text("Photo from \(photo.createdAt.formatted(date: .abbreviated, time: .omitted))")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                        Spacer()
-                                    }
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 6)
-                                    .background(Color.orange.opacity(0.1))
-                                    .cornerRadius(8)
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                    }
                 } else {
                     // Photo picker
                     PhotosPicker(
@@ -138,7 +102,7 @@ struct AdultRequestDetailView: View {
 
                 Spacer()
             }
-            .navigationTitle("Request")
+            .navigationTitle("Send Photos")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -167,7 +131,7 @@ struct AdultRequestDetailView: View {
             let dataList = selectedImages.compactMap { img in
                 img.jpegData(compressionQuality: 0.8)
             }
-            try await appVM.store.fulfillRequest(request.id, imageDataList: dataList)
+            try await appVM.store.sendPhotos(imageDataList: dataList)
             didSend = true
             appVM.triggerAccountNudgeIfNeeded()
         } catch {

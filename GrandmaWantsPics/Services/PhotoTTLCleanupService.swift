@@ -16,7 +16,9 @@ struct PhotoTTLCleanupService {
                 do {
                     try await store.deletePhoto(photo, fromRequest: requestId)
                 } catch {
+                    #if DEBUG
                     print("Failed to delete expired photo \(photo.id): \(error)")
+                    #endif
                 }
             }
         }
