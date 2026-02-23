@@ -14,6 +14,7 @@ final class AppViewModel: ObservableObject {
     @Published var isRecoveringAccount: Bool = false
     @Published var recoveryError: String?
     @Published var showAccountNudge: Bool = false
+    @Published var showCoachMarks: Bool = false
 
     let store: FamilyStore
     let authService = AuthService()
@@ -26,6 +27,7 @@ final class AppViewModel: ObservableObject {
     private let pairedKey = "isPaired"
     private let pairingCodeKey = "pendingPairingCode"
     private let hasSeenAccountNudgeKey = "hasSeenAccountNudge"
+    private let hasSeenCoachMarksKey = "hasSeenCoachMarks"
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Subscription Tier
@@ -277,6 +279,22 @@ final class AppViewModel: ObservableObject {
         UserDefaults.standard.set(true, forKey: hasSeenAccountNudgeKey)
     }
 
+    // MARK: - Coach Marks
+
+    func triggerCoachMarksIfNeeded() {
+        guard !UserDefaults.standard.bool(forKey: hasSeenCoachMarksKey) else { return }
+        showCoachMarks = true
+    }
+
+    func dismissCoachMarks() {
+        showCoachMarks = false
+        UserDefaults.standard.set(true, forKey: hasSeenCoachMarksKey)
+    }
+
+    func resetCoachMarks() {
+        UserDefaults.standard.removeObject(forKey: hasSeenCoachMarksKey)
+    }
+
     // MARK: - Share Link
 
     func generateShareLink() -> URL? {
@@ -387,6 +405,7 @@ final class AppViewModel: ObservableObject {
         UserDefaults.standard.removeObject(forKey: pairingCodeKey)
         UserDefaults.standard.removeObject(forKey: "firebase_familyId")
         UserDefaults.standard.removeObject(forKey: hasSeenAccountNudgeKey)
+        UserDefaults.standard.removeObject(forKey: hasSeenCoachMarksKey)
         WidgetDataWriter.write(.empty)
     }
 

@@ -4,7 +4,6 @@ struct GrandmaHomeView: View {
     @EnvironmentObject var appVM: AppViewModel
     @State private var showConfirmation = false
     @State private var showGallery = false
-    @State private var showAccountSheet = false
     @State private var lastRequestTime: Date?
     @State private var hasPromptedNotifications = false
 
@@ -86,20 +85,8 @@ struct GrandmaHomeView: View {
             .navigationTitle("")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
+                    #if DEBUG
                     Menu {
-                        Button {
-                            showAccountSheet = true
-                        } label: {
-                            if appVM.authService.isLinked {
-                                Label("Account", systemImage: "person.crop.circle.badge.checkmark")
-                            } else {
-                                Label("Protect Account", systemImage: "shield")
-                            }
-                        }
-
-                        #if DEBUG
-                        Divider()
-
                         Button {
                             appVM.switchRole()
                         } label: {
@@ -111,22 +98,18 @@ struct GrandmaHomeView: View {
                         } label: {
                             Label("Reset App", systemImage: "trash")
                         }
-                        #endif
                     } label: {
                         Image(systemName: "gearshape")
                             .font(.body)
                             .foregroundStyle(.secondary)
                     }
+                    #endif
                 }
             }
             .sheet(isPresented: $showGallery) {
                 GrandmaGalleryView()
                     .environmentObject(appVM)
             }
-            .sheet(isPresented: $showAccountSheet) {
-                AccountView()
-                    .environmentObject(appVM)
-            }
-        }
+}
     }
 }

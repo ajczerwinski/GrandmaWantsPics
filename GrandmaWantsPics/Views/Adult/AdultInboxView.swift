@@ -1,11 +1,24 @@
 import SwiftUI
 
+// MARK: - Preference Key for capturing coach mark anchor frames
+
+private struct CoachMarkFrameKey: PreferenceKey {
+    static var defaultValue: [String: CGRect] = [:]
+    static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { $1 })
+    }
+}
+
 struct AdultInboxView: View {
     @EnvironmentObject var appVM: AppViewModel
     @State private var selectedRequest: PhotoRequest?
     @State private var showSubscriptionSheet = false
     @State private var showSendPhotosSheet = false
     @State private var showAccountSheet = false
+    @State private var coachMarkStep = 0
+    @State private var cameraFrame: CGRect = .zero
+    @State private var inboxFrame: CGRect = .zero
+    @State private var gearFrame: CGRect = .zero
 
     var body: some View {
         NavigationStack {
@@ -102,6 +115,14 @@ struct AdultInboxView: View {
                     }
                 }
             }
+            .background(
+                GeometryReader { geo in
+                    Color.clear.preference(
+                        key: CoachMarkFrameKey.self,
+                        value: ["inbox": geo.frame(in: .global)]
+                    )
+                }
+            )
             .navigationTitle("Inbox")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -112,6 +133,14 @@ struct AdultInboxView: View {
                             .font(.body)
                             .foregroundStyle(.pink)
                     }
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.preference(
+                                key: CoachMarkFrameKey.self,
+                                value: ["camera": geo.frame(in: .global)]
+                            )
+                        }
+                    )
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
@@ -135,6 +164,16 @@ struct AdultInboxView: View {
                             }
                         }
 
+                        Divider()
+
+                        Button {
+                            appVM.resetCoachMarks()
+                            appVM.showCoachMarks = true
+                            coachMarkStep = 0
+                        } label: {
+                            Label("How to Use", systemImage: "questionmark.circle")
+                        }
+
                         #if DEBUG
                         Divider()
 
@@ -155,7 +194,20 @@ struct AdultInboxView: View {
                             .font(.body)
                             .foregroundStyle(.secondary)
                     }
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.preference(
+                                key: CoachMarkFrameKey.self,
+                                value: ["gear": geo.frame(in: .global)]
+                            )
+                        }
+                    )
                 }
+            }
+            .onPreferenceChange(CoachMarkFrameKey.self) { frames in
+                if let f = frames["camera"] { cameraFrame = f }
+                if let f = frames["inbox"] { inboxFrame = f }
+                if let f = frames["gear"] { gearFrame = f }
             }
             .sheet(item: $selectedRequest) { request in
                 AdultRequestDetailView(request: request)
@@ -176,6 +228,21 @@ struct AdultInboxView: View {
             }) {
                 AccountView()
                     .environmentObject(appVM)
+            }
+            .overlay {
+                if appVM.showCoachMarks {
+                    CoachMarkOverlay(
+                        currentStep: $coachMarkStep,
+                        spotlightFrames: [cameraFrame, inboxFrame, gearFrame],
+                        onDismiss: {
+                            appVM.dismissCoachMarks()
+                            coachMarkStep = 0
+                        }
+                    )
+                }
+            }
+            .onAppear {
+                appVM.triggerCoachMarksIfNeeded()
             }
         }
     }

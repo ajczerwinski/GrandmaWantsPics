@@ -7,6 +7,7 @@ struct AdultSendPhotosView: View {
 
     @State private var selectedItems: [PhotosPickerItem] = []
     @State private var selectedImages: [UIImage] = []
+    @State private var isLoadingPhotos = false
     @State private var isSending = false
     @State private var errorMessage: String?
     @State private var didSend = false
@@ -52,8 +53,13 @@ struct AdultSendPhotosView: View {
                         Task { await loadSelectedPhotos() }
                     }
 
+                    if isLoadingPhotos {
+                        ProgressView("Loading photos...")
+                            .padding(.top, 20)
+                    }
+
                     // Preview selected
-                    if !selectedImages.isEmpty {
+                    if !selectedImages.isEmpty && !isLoadingPhotos {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(Array(selectedImages.enumerated()), id: \.offset) { _, img in
@@ -113,6 +119,7 @@ struct AdultSendPhotosView: View {
     }
 
     private func loadSelectedPhotos() async {
+        isLoadingPhotos = true
         var images: [UIImage] = []
         for item in selectedItems {
             if let data = try? await item.loadTransferable(type: Data.self),
@@ -121,6 +128,7 @@ struct AdultSendPhotosView: View {
             }
         }
         selectedImages = images
+        isLoadingPhotos = false
     }
 
     private func sendPhotos() async {
