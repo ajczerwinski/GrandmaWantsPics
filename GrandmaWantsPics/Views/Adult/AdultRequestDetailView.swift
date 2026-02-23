@@ -159,13 +159,24 @@ struct AdultRequestDetailView: View {
         selectedImages = images
     }
 
+    private func downsample(_ image: UIImage, maxDimension: CGFloat = 2048) -> UIImage {
+        let size = image.size
+        let scale = min(maxDimension / max(size.width, size.height), 1.0)
+        guard scale < 1.0 else { return image }
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0
+        let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+        return renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: newSize)) }
+    }
+
     private func sendPhotos() async {
         isSending = true
         errorMessage = nil
 
         do {
             let dataList = selectedImages.compactMap { img in
-                img.jpegData(compressionQuality: 0.8)
+                downsample(img).jpegData(compressionQuality: 0.8)
             }
             try await appVM.store.fulfillRequest(request.id, imageDataList: dataList)
             didSend = true

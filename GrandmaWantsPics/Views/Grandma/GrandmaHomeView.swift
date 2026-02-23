@@ -6,9 +6,15 @@ struct GrandmaHomeView: View {
     @State private var showGallery = false
     @State private var lastRequestTime: Date?
     @State private var hasPromptedNotifications = false
+    @State private var isSending = false
+    @State private var showDuplicateAlert = false
 
     private var fulfilledPhotosExist: Bool {
         appVM.store.requests.contains(where: { $0.status == .fulfilled })
+    }
+
+    private var hasPendingRequest: Bool {
+        appVM.store.requests.contains(where: { $0.status == .pending })
     }
 
     var body: some View {
@@ -17,20 +23,10 @@ struct GrandmaHomeView: View {
                 Spacer()
 
                 Button {
-                    Task {
-                        _ = try? await appVM.store.createRequest()
-                        lastRequestTime = Date()
-                        showConfirmation = true
-
-                        // Prompt for notifications after first request
-                        if !hasPromptedNotifications {
-                            hasPromptedNotifications = true
-                            await appVM.setupNotifications()
-                        }
-
-                        // Auto-dismiss confirmation
-                        try? await Task.sleep(for: .seconds(3))
-                        showConfirmation = false
+                    if hasPendingRequest {
+                        showDuplicateAlert = true
+                    } else {
+                        Task { await sendRequest() }
                     }
                 } label: {
                     VStack(spacing: 16) {
@@ -48,6 +44,7 @@ struct GrandmaHomeView: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .disabled(isSending)
                 .sensoryFeedback(.success, trigger: showConfirmation)
 
                 if showConfirmation {
@@ -110,6 +107,32 @@ struct GrandmaHomeView: View {
                 GrandmaGalleryView()
                     .environmentObject(appVM)
             }
-}
+            .alert("Request Already Pending", isPresented: $showDuplicateAlert) {
+                Button("Send Anyway") {
+                    Task { await sendRequest() }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("You already have a pending request. Send another one?")
+            }
+        }
+    }
+
+    private func sendRequest() async {
+        isSending = true
+        _ = try? await appVM.store.createRequest()
+        lastRequestTime = Date()
+        showConfirmation = true
+
+        if !hasPromptedNotifications {
+            hasPromptedNotifications = true
+            await appVM.setupNotifications()
+        }
+
+        isSending = false
+
+        // Auto-dismiss confirmation
+        try? await Task.sleep(for: .seconds(3))
+        showConfirmation = false
     }
 }

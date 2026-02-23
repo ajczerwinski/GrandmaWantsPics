@@ -6,6 +6,7 @@ struct SubscriptionView: View {
     @Environment(\.dismiss) var dismiss
     @State private var isPurchasing = false
     @State private var errorMessage: String?
+    @State private var showManageSheet = false
 
     private var manager: SubscriptionManager { appVM.subscriptionManager }
 
@@ -58,6 +59,15 @@ struct SubscriptionView: View {
                                 .font(.headline)
                             Text("Your photos are kept while subscribed.")
                                 .foregroundStyle(.secondary)
+
+                            Button {
+                                showManageSheet = true
+                            } label: {
+                                Text("Manage Subscription")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.blue)
+                            }
+                            .padding(.top, 4)
                         }
                         .padding()
                     } else {
@@ -102,6 +112,7 @@ struct SubscriptionView: View {
                     Spacer()
                 }
             }
+            .manageSubscriptionsSheet(isPresented: $showManageSheet)
             .navigationTitle("Premium")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
