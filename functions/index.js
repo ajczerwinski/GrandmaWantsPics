@@ -33,6 +33,7 @@ exports.onNewRequest = onDocumentCreated(
         title: "Grandma wants pictures!",
         body: "Tap to send some photos",
       },
+      data: { type: "new_request" },
       tokens,
     };
 
@@ -71,6 +72,7 @@ exports.onRequestFulfilled = onDocumentUpdated(
         title: "New photos!",
         body: "Your family sent you pictures",
       },
+      data: { type: "new_photos" },
       tokens,
     };
 

@@ -116,6 +116,12 @@ struct GrandmaHomeView: View {
                 GrandmaGalleryView()
                     .environmentObject(appVM)
             }
+            .onChange(of: appVM.pendingDeepAction) { _, action in
+                if action == .openGallery {
+                    showGallery = true
+                    appVM.pendingDeepAction = nil
+                }
+            }
             .alert("Switch to Family Mode?", isPresented: $showSwitchRoleAlert) {
                 Button("Switch") {
                     appVM.switchRole()

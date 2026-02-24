@@ -8,6 +8,7 @@ final class NotificationService: NSObject, ObservableObject {
     static let shared = NotificationService()
 
     @Published var fcmToken: String?
+    var onNotificationTap: ((String) -> Void)?
 
     private override init() {
         super.init()
@@ -89,6 +90,10 @@ extension NotificationService: UNUserNotificationCenterDelegate {
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        // Handle notification tap — the app opens and existing routing handles navigation
+        let type = response.notification.request.content.userInfo["type"] as? String ?? ""
+        guard !type.isEmpty else { return }
+        Task { @MainActor [self] in
+            onNotificationTap?(type)
+        }
     }
 }

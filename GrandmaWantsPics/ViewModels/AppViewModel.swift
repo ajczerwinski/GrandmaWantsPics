@@ -6,6 +6,10 @@ import Combine
 @MainActor
 final class AppViewModel: ObservableObject {
 
+    enum DeepAction: Equatable {
+        case openGallery
+    }
+
     @Published var currentRole: AppRole?
     @Published var isPaired: Bool = false
     @Published var pairingCode: String?
@@ -15,6 +19,7 @@ final class AppViewModel: ObservableObject {
     @Published var recoveryError: String?
     @Published var showAccountNudge: Bool = false
     @Published var showCoachMarks: Bool = false
+    @Published var pendingDeepAction: DeepAction?
 
     let store: FamilyStore
     let authService = AuthService()
@@ -327,7 +332,13 @@ final class AppViewModel: ObservableObject {
 
         guard isCustomScheme || isUniversalLink else { return }
 
-        // Only handle join links; ignore widget deep links
+        // Handle gallery navigation deep link (widget tap with photos)
+        if isCustomScheme && url.host == "gallery" && isPaired {
+            pendingDeepAction = .openGallery
+            return
+        }
+
+        // Only handle join links for everything else
         let isJoinLink = isCustomScheme ? url.host == "join" : url.path.hasPrefix("/join")
         guard isJoinLink else { return }
 
@@ -427,6 +438,12 @@ final class AppViewModel: ObservableObject {
     func setupNotifications() async {
         guard AppConfig.useFirebase else { return }
         notificationService.configureFCM()
+        notificationService.onNotificationTap = { [weak self] type in
+            guard let self else { return }
+            if type == "new_photos" {
+                pendingDeepAction = .openGallery
+            }
+        }
         _ = await notificationService.requestPermission()
         await notificationService.saveFCMToken(store: store)
     }

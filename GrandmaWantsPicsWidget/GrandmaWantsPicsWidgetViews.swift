@@ -129,7 +129,9 @@ struct GrandmaWantsPicsWidgetView: View {
             }
         }
         .padding()
-        .widgetURL(URL(string: "\(AppGroupConstants.deepLinkScheme)://home"))
+        .widgetURL(URL(string: entry.widgetData.lastPhotosReceivedDate != nil
+            ? "\(AppGroupConstants.deepLinkScheme)://gallery"
+            : "\(AppGroupConstants.deepLinkScheme)://home"))
     }
 
     // MARK: - Fallback Views
