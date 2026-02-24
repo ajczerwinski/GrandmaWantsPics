@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: is the requesting user a member of this family?
+    function isFamilyMember(familyId) {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/families/$(familyId)/connections/$(request.auth.uid));
+    }
+
+    match /families/{familyId} {
+      // Allow reading the family document itself (needed for pairing code lookup during joinFamily)
+      allow read: if request.auth != null;
+      // Only members can write
+      allow write: if isFamilyMember(familyId);
+
+      match /{subcollection=**} {
+        allow read, write: if isFamilyMember(familyId);
+      }
+    }
+  }
+}

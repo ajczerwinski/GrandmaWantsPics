@@ -47,7 +47,7 @@ final class FirebaseFamilyStore: FamilyStore {
         ])
 
         // Add adult connection
-        try await familyRef.collection("connections").addDocument(data: [
+        try await familyRef.collection("connections").document(uid).setData([
             "userId": uid,
             "role": "adult",
             "authProvider": authService?.currentAuthProvider ?? "anonymous",
@@ -89,7 +89,7 @@ final class FirebaseFamilyStore: FamilyStore {
         )
 
         // Add connection with the specified role
-        try await doc.reference.collection("connections").addDocument(data: [
+        try await doc.reference.collection("connections").document(uid).setData([
             "userId": uid,
             "role": asRole,
             "authProvider": authService?.currentAuthProvider ?? "anonymous",
@@ -278,7 +278,8 @@ final class FirebaseFamilyStore: FamilyStore {
                         requestId: requestId,
                         createdAt: (d["createdAt"] as? Timestamp)?.dateValue() ?? Date(),
                         createdByUserId: d["createdByUserId"] as? String ?? "",
-                        storagePath: d["storagePath"] as? String ?? ""
+                        storagePath: d["storagePath"] as? String ?? "",
+                        isBlocked: d["isBlocked"] as? Bool ?? false
                     )
                 }
 
@@ -304,6 +305,29 @@ final class FirebaseFamilyStore: FamilyStore {
             .delete()
     }
 
+    // MARK: - Reporting
+
+    override func reportPhoto(_ photo: Photo, fromRequest requestId: String) async throws {
+        guard let fid = familyId, let uid = authService?.currentUserId else { throw StoreError.notPaired }
+
+        // Write the report document for admin review
+        try await db.collection("families").document(fid)
+            .collection("reports")
+            .addDocument(data: [
+                "photoId": photo.id,
+                "requestId": requestId,
+                "storagePath": photo.storagePath,
+                "reportedByUserId": uid,
+                "createdAt": Timestamp(date: Date())
+            ])
+
+        // Block the photo immediately so it disappears from all clients via the snapshot listener
+        try await db.collection("families").document(fid)
+            .collection("requests").document(requestId)
+            .collection("photos").document(photo.id)
+            .updateData(["isBlocked": true])
+    }
+
     // MARK: - Subscription Tier
 
     override func updateSubscriptionTier(_ tier: SubscriptionTier) async throws {
@@ -318,15 +342,9 @@ final class FirebaseFamilyStore: FamilyStore {
 
     override func saveFCMToken(_ token: String) async throws {
         guard let fid = familyId, let uid = authService?.currentUserId else { throw StoreError.notPaired }
-
-        let snapshot = try await db.collection("families").document(fid)
-            .collection("connections")
-            .whereField("userId", isEqualTo: uid)
-            .limit(to: 1)
-            .getDocuments()
-
-        guard let doc = snapshot.documents.first else { return }
-        try await doc.reference.updateData(["fcmToken": token])
+        try await db.collection("families").document(fid)
+            .collection("connections").document(uid)
+            .updateData(["fcmToken": token])
     }
 
     // MARK: - Errors

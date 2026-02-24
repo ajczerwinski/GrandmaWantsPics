@@ -26,6 +26,14 @@ struct AccountView: View {
                     } else {
                         linkAccountView
                     }
+
+                    Divider()
+                        .padding(.top, 8)
+
+                    Link("Privacy Policy", destination: URL(string: "https://grandmawantspics.com/privacy")!)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .padding(.bottom, 8)
                 }
                 .padding()
             }

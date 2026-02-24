@@ -90,6 +90,12 @@ struct GrandmaHomeView: View {
                             Label("Switch to Family", systemImage: "arrow.left.arrow.right")
                         }
 
+                        Divider()
+
+                        Link(destination: URL(string: "https://grandmawantspics.com/privacy")!) {
+                            Label("Privacy Policy", systemImage: "doc.text")
+                        }
+
                         #if DEBUG
                         Divider()
 

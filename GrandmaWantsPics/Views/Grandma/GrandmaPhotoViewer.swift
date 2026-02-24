@@ -13,6 +13,8 @@ struct GrandmaPhotoViewer: View {
     @State private var currentIndex: Int = 0
     @State private var showAddToAlbum = false
     @State private var showSaveConfirmation = false
+    @State private var showReportAlert = false
+    @State private var showReportConfirmation = false
     @State private var loadedFullImages: [String: UIImage] = [:]
 
     private var isLandscape: Bool { verticalSizeClass == .compact }
@@ -64,6 +66,23 @@ struct GrandmaPhotoViewer: View {
                 }
                 .animation(.easeInOut, value: showSaveConfirmation)
             }
+
+            // Report confirmation toast
+            if showReportConfirmation {
+                VStack {
+                    Spacer()
+                    Text("Photo Reported")
+                        .font(.title3.bold())
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 14)
+                        .background(Color.orange.cornerRadius(14))
+                        .shadow(radius: 8)
+                        .padding(.bottom, isLandscape ? 20 : 140)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .animation(.easeInOut, value: showReportConfirmation)
+            }
         }
         .onAppear {
             if let idx = photos.firstIndex(where: { $0.id == initialPhoto.id }) {
@@ -74,6 +93,20 @@ struct GrandmaPhotoViewer: View {
             if let manager = galleryManager, let photo = currentPhoto {
                 AddToAlbumSheet(galleryManager: manager, photoId: photo.id)
             }
+        }
+        .alert("Report Photo", isPresented: $showReportAlert) {
+            Button("Report as Inappropriate", role: .destructive) {
+                guard let photo = currentPhoto else { return }
+                Task {
+                    try? await store.reportPhoto(photo, fromRequest: photo.requestId)
+                    showReportConfirmation = true
+                    try? await Task.sleep(for: .seconds(1.5))
+                    dismiss()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This photo will be flagged for review.")
         }
     }
 
@@ -167,6 +200,14 @@ struct GrandmaPhotoViewer: View {
             ) {
                 showAddToAlbum = true
             }
+
+            actionButton(
+                icon: "flag",
+                label: "Report Photo",
+                iconColor: .white
+            ) {
+                showReportAlert = true
+            }
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 14)
@@ -220,6 +261,14 @@ struct GrandmaPhotoViewer: View {
                 iconColor: .white
             ) {
                 showAddToAlbum = true
+            }
+
+            compactActionButton(
+                icon: "flag",
+                label: "Report",
+                iconColor: .white
+            ) {
+                showReportAlert = true
             }
 
             Spacer()

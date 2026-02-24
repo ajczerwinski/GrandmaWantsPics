@@ -20,10 +20,11 @@ struct GrandmaGalleryView: View {
 
     private var allPhotos: [Photo] {
         let photos = fulfilledRequests.flatMap { appVM.store.photos(for: $0.id) }
+        let visible = photos.filter { !$0.isBlocked }
         if appVM.isFreeTier {
-            return photos.filter { !$0.isExpired }
+            return visible.filter { !$0.isExpired }
         }
-        return photos
+        return visible
     }
 
     private var displayedPhotos: [Photo] {
@@ -180,6 +181,12 @@ struct GrandmaGalleryView: View {
                                 addToAlbumPhoto = photo
                             } label: {
                                 Label("Add to Album", systemImage: "rectangle.stack.badge.plus")
+                            }
+
+                            Button(role: .destructive) {
+                                Task { try? await appVM.store.reportPhoto(photo, fromRequest: photo.requestId) }
+                            } label: {
+                                Label("Report Photo", systemImage: "flag")
                             }
                         }
                     }
