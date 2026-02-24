@@ -305,6 +305,28 @@ final class FirebaseFamilyStore: FamilyStore {
             .delete()
     }
 
+    // MARK: - Request Deletion
+
+    override func deleteRequest(_ request: PhotoRequest) async throws {
+        guard let fid = familyId else { throw StoreError.notPaired }
+
+        let requestRef = db.collection("families").document(fid)
+            .collection("requests").document(request.id)
+
+        // For fulfilled requests, delete all photos from Storage and Firestore first
+        if request.status == .fulfilled {
+            let photosSnap = try await requestRef.collection("photos").getDocuments()
+            for doc in photosSnap.documents {
+                if let storagePath = doc.data()["storagePath"] as? String, !storagePath.isEmpty {
+                    try? await storage.reference().child(storagePath).delete()
+                }
+                try await doc.reference.delete()
+            }
+        }
+
+        try await requestRef.delete()
+    }
+
     // MARK: - Reporting
 
     override func reportPhoto(_ photo: Photo, fromRequest requestId: String) async throws {

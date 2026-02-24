@@ -16,7 +16,18 @@ struct AdultInboxView: View {
     @State private var showSendPhotosSheet = false
     @State private var showAccountSheet = false
     @State private var showSwitchRoleAlert = false
+    @State private var requestToDelete: PhotoRequest?
     @State private var coachMarkStep = 0
+
+    private static let maxDisplayedRequests = 20
+
+    private var displayedRequests: [PhotoRequest] {
+        Array(appVM.store.requests.prefix(Self.maxDisplayedRequests))
+    }
+
+    private var hiddenRequestCount: Int {
+        max(0, appVM.store.requests.count - Self.maxDisplayedRequests)
+    }
     @State private var cameraFrame: CGRect = .zero
     @State private var inboxFrame: CGRect = .zero
     @State private var gearFrame: CGRect = .zero
@@ -91,7 +102,7 @@ struct AdultInboxView: View {
                         }
 
                         Section {
-                            ForEach(appVM.store.requests) { request in
+                            ForEach(displayedRequests) { request in
                                 Button {
                                     selectedRequest = request
                                 } label: {
@@ -111,6 +122,49 @@ struct AdultInboxView: View {
                                     .padding(.vertical, 4)
                                 }
                                 .buttonStyle(.plain)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    if request.status == .pending {
+                                        Button(role: .destructive) {
+                                            Task { try? await appVM.store.deleteRequest(request) }
+                                        } label: {
+                                            Label("Dismiss", systemImage: "xmark")
+                                        }
+                                    } else {
+                                        Button(role: .destructive) {
+                                            requestToDelete = request
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
+                                    }
+                                }
+                                .contextMenu {
+                                    if request.status == .pending {
+                                        Button(role: .destructive) {
+                                            Task { try? await appVM.store.deleteRequest(request) }
+                                        } label: {
+                                            Label("Dismiss Request", systemImage: "xmark.circle")
+                                        }
+                                    } else {
+                                        Button {
+                                            selectedRequest = request
+                                        } label: {
+                                            Label("Open", systemImage: "eye")
+                                        }
+                                        Button(role: .destructive) {
+                                            requestToDelete = request
+                                        } label: {
+                                            Label("Delete Request & Photos", systemImage: "trash")
+                                        }
+                                    }
+                                }
+                            }
+
+                            if hiddenRequestCount > 0 {
+                                Text("\(hiddenRequestCount) older request\(hiddenRequestCount == 1 ? "" : "s") not shown")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .listRowBackground(Color.clear)
                             }
                         }
                     }
@@ -209,6 +263,19 @@ struct AdultInboxView: View {
                 if let f = frames["camera"] { cameraFrame = f }
                 if let f = frames["inbox"] { inboxFrame = f }
                 if let f = frames["gear"] { gearFrame = f }
+            }
+            .alert("Delete Request & Photos?", isPresented: Binding(
+                get: { requestToDelete != nil },
+                set: { if !$0 { requestToDelete = nil } }
+            )) {
+                Button("Delete", role: .destructive) {
+                    guard let req = requestToDelete else { return }
+                    requestToDelete = nil
+                    Task { try? await appVM.store.deleteRequest(req) }
+                }
+                Button("Cancel", role: .cancel) { requestToDelete = nil }
+            } message: {
+                Text("This will permanently remove all photos from Grandma's gallery.")
             }
             .alert("Switch to Grandma Mode?", isPresented: $showSwitchRoleAlert) {
                 Button("Switch") {
