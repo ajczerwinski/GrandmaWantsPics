@@ -88,12 +88,15 @@ extension NotificationService: UNUserNotificationCenterDelegate {
 
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        didReceive response: UNNotificationResponse
-    ) async {
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
         let type = response.notification.request.content.userInfo["type"] as? String ?? ""
-        guard !type.isEmpty else { return }
-        await MainActor.run { [self] in
-            onNotificationTap?(type)
+        if !type.isEmpty {
+            Task { @MainActor in
+                self.onNotificationTap?(type)
+            }
         }
+        completionHandler()
     }
 }
