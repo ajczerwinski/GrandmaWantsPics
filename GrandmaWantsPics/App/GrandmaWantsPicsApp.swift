@@ -8,6 +8,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        // Delegate must be set before app finishes launching (Apple requirement)
+        UNUserNotificationCenter.current().delegate = NotificationService.shared
         application.registerForRemoteNotifications()
         return true
     }

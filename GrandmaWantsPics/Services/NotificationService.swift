@@ -92,7 +92,7 @@ extension NotificationService: UNUserNotificationCenterDelegate {
     ) async {
         let type = response.notification.request.content.userInfo["type"] as? String ?? ""
         guard !type.isEmpty else { return }
-        Task { @MainActor [self] in
+        await MainActor.run { [self] in
             onNotificationTap?(type)
         }
     }
