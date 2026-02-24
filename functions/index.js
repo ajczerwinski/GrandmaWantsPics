@@ -1,7 +1,9 @@
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
+const { getStorage } = require("firebase-admin/storage");
 
 initializeApp();
 
@@ -76,3 +78,80 @@ exports.onRequestFulfilled = onDocumentUpdated(
     console.log(`Sent to ${response.successCount} of ${tokens.length} grandmas`);
   }
 );
+
+// Daily cleanup of expired photos for free-tier families
+exports.cleanupExpiredPhotos = onSchedule("every day 02:00", async () => {
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const bucket = getStorage().bucket();
+
+  let familiesScanned = 0;
+  let photosDeleted = 0;
+  let errors = 0;
+
+  const familiesSnap = await db
+    .collection("families")
+    .where("subscriptionTier", "==", "free")
+    .get();
+
+  familiesScanned = familiesSnap.size;
+
+  for (const familyDoc of familiesSnap.docs) {
+    const requestsSnap = await db
+      .collection("families")
+      .doc(familyDoc.id)
+      .collection("requests")
+      .get();
+
+    for (const requestDoc of requestsSnap.docs) {
+      const expiredPhotosSnap = await db
+        .collection("families")
+        .doc(familyDoc.id)
+        .collection("requests")
+        .doc(requestDoc.id)
+        .collection("photos")
+        .where("createdAt", "<=", cutoff)
+        .get();
+
+      if (expiredPhotosSnap.empty) continue;
+
+      let batch = db.batch();
+      let batchCount = 0;
+
+      for (const photoDoc of expiredPhotosSnap.docs) {
+        const { storagePath } = photoDoc.data();
+
+        // Delete from Storage
+        if (storagePath) {
+          try {
+            await bucket.file(storagePath).delete();
+          } catch (err) {
+            if (err.code !== 404) {
+              console.error(`Failed to delete storage file ${storagePath}:`, err.message);
+              errors++;
+            }
+          }
+        }
+
+        batch.delete(photoDoc.ref);
+        batchCount++;
+        photosDeleted++;
+
+        // Firestore batches are limited to 500 operations
+        if (batchCount === 500) {
+          await batch.commit();
+          batch = db.batch();
+          batchCount = 0;
+        }
+      }
+
+      if (batchCount > 0) {
+        await batch.commit();
+      }
+    }
+  }
+
+  console.log(
+    `Photo TTL cleanup complete: ${familiesScanned} families scanned, ` +
+    `${photosDeleted} photos deleted, ${errors} errors`
+  );
+});

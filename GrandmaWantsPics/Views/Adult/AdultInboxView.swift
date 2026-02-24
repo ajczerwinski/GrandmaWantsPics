@@ -15,6 +15,7 @@ struct AdultInboxView: View {
     @State private var showSubscriptionSheet = false
     @State private var showSendPhotosSheet = false
     @State private var showAccountSheet = false
+    @State private var showSwitchRoleAlert = false
     @State private var coachMarkStep = 0
     @State private var cameraFrame: CGRect = .zero
     @State private var inboxFrame: CGRect = .zero
@@ -174,15 +175,15 @@ struct AdultInboxView: View {
                             Label("How to Use", systemImage: "questionmark.circle")
                         }
 
-                        #if DEBUG
                         Divider()
 
-                        Button(role: .destructive) {
-                            appVM.switchRole()
+                        Button {
+                            showSwitchRoleAlert = true
                         } label: {
                             Label("Switch to Grandma", systemImage: "arrow.left.arrow.right")
                         }
 
+                        #if DEBUG
                         Button(role: .destructive) {
                             appVM.resetAll()
                         } label: {
@@ -208,6 +209,14 @@ struct AdultInboxView: View {
                 if let f = frames["camera"] { cameraFrame = f }
                 if let f = frames["inbox"] { inboxFrame = f }
                 if let f = frames["gear"] { gearFrame = f }
+            }
+            .alert("Switch to Grandma Mode?", isPresented: $showSwitchRoleAlert) {
+                Button("Switch") {
+                    appVM.switchRole()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This will change the app to Grandma mode. You can always switch back.")
             }
             .sheet(item: $selectedRequest) { request in
                 AdultRequestDetailView(request: request)

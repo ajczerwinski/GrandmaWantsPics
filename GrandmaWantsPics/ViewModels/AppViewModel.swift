@@ -116,10 +116,13 @@ final class AppViewModel: ObservableObject {
             self.imageCacheService = ImageCacheService()
         }
 
-        // Load products and check subscription status
+        // Load products, check subscription status, and sync tier to Firestore
         Task {
             await subscriptionManager.loadProducts()
             await subscriptionManager.checkSubscriptionStatus()
+            if isPaired {
+                await syncSubscriptionTier()
+            }
         }
 
         // Set up push notifications for already-paired users

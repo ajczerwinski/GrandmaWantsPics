@@ -50,6 +50,7 @@ struct AdultSendPhotosView: View {
                     }
                     .padding(.horizontal, 32)
                     .onChange(of: selectedItems) {
+                        isLoadingPhotos = !selectedItems.isEmpty
                         Task { await loadSelectedPhotos() }
                     }
 

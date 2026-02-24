@@ -477,7 +477,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = GrandmaWantsPicsWidget/GrandmaWantsPicsWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = B36SK2M974;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = GrandmaWantsPicsWidget/Info.plist;
@@ -501,7 +501,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = GrandmaWantsPics/GrandmaWantsPics.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = B36SK2M974;
 				INFOPLIST_FILE = GrandmaWantsPics/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -576,7 +576,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = GrandmaWantsPicsWidget/GrandmaWantsPicsWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = B36SK2M974;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = GrandmaWantsPicsWidget/Info.plist;
@@ -664,7 +664,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = GrandmaWantsPics/GrandmaWantsPics.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = B36SK2M974;
 				INFOPLIST_FILE = GrandmaWantsPics/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (

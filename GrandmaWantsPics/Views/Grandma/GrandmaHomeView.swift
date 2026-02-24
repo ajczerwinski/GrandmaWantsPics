@@ -8,6 +8,7 @@ struct GrandmaHomeView: View {
     @State private var hasPromptedNotifications = false
     @State private var isSending = false
     @State private var showDuplicateAlert = false
+    @State private var showSwitchRoleAlert = false
 
     private var fulfilledPhotosExist: Bool {
         appVM.store.requests.contains(where: { $0.status == .fulfilled })
@@ -82,30 +83,40 @@ struct GrandmaHomeView: View {
             .navigationTitle("")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    #if DEBUG
                     Menu {
                         Button {
-                            appVM.switchRole()
+                            showSwitchRoleAlert = true
                         } label: {
                             Label("Switch to Family", systemImage: "arrow.left.arrow.right")
                         }
+
+                        #if DEBUG
+                        Divider()
 
                         Button(role: .destructive) {
                             appVM.resetAll()
                         } label: {
                             Label("Reset App", systemImage: "trash")
                         }
+                        #endif
                     } label: {
                         Image(systemName: "gearshape")
                             .font(.body)
                             .foregroundStyle(.secondary)
                     }
-                    #endif
                 }
             }
             .sheet(isPresented: $showGallery) {
                 GrandmaGalleryView()
                     .environmentObject(appVM)
+            }
+            .alert("Switch to Family Mode?", isPresented: $showSwitchRoleAlert) {
+                Button("Switch") {
+                    appVM.switchRole()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This will change the app to Family mode. You can always switch back.")
             }
             .alert("Request Already Pending", isPresented: $showDuplicateAlert) {
                 Button("Send Anyway") {
