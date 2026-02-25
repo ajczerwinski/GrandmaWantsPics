@@ -275,7 +275,7 @@ struct AdultInboxView: View {
                 }
                 Button("Cancel", role: .cancel) { requestToDelete = nil }
             } message: {
-                Text("This will permanently remove all photos from Grandma's gallery.")
+                Text("These photos will be permanently removed from Grandma's gallery.")
             }
             .alert("Switch to Grandma Mode?", isPresented: $showSwitchRoleAlert) {
                 Button("Switch") {
