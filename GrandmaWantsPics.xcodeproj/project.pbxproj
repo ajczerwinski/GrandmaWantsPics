@@ -47,6 +47,7 @@
 		BF5735C52F4B81F3009C8CBD /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5735C42F4B81F3009C8CBD /* AuthService.swift */; };
 		BF5735C92F4B821D009C8CBD /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5735C62F4B821D009C8CBD /* AccountView.swift */; };
 		BF5735CA2F4B821D009C8CBD /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5735C72F4B821D009C8CBD /* SignInView.swift */; };
+		BFDA07E12F4F98D4000CF940 /* StoreKitConfig.storekit in Resources */ = {isa = PBXBuildFile; fileRef = BFDA07E02F4F98D4000CF940 /* StoreKitConfig.storekit */; };
 		C74AAB0496DB7770615FDA5F /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = DE6A053FADD831F5BB8323C5 /* FirebaseStorage */; };
 		C96EC60F7856EBBB88609306 /* GrandmaGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DEDC81060104373627B8306 /* GrandmaGalleryView.swift */; };
 		CA3D1D94B0D7910B2A1A0304 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0FE14D52E63742C9DBEB956E /* GoogleService-Info.plist */; };
@@ -54,9 +55,9 @@
 		CEA79202F5A04C8A7E687BCD /* SubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E51BFC8F22D7A42B56CAF9 /* SubscriptionView.swift */; };
 		D15C7C2411778312FFA38FCD /* GrandmaWantsPicsWidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50602CAD4F604BD5F4795F87 /* GrandmaWantsPicsWidgetViews.swift */; };
 		D4E5F6A7B8C9D0E1F2A3B4C5 /* AlbumListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A7B8C9D0E1F2A3B4 /* AlbumListView.swift */; };
+		DD0A1B2C3D4E5F6A7B8C9D0E /* CoachMarkOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0A1B2C3D4E5F6A7B8C9D0E /* CoachMarkOverlay.swift */; };
 		E4F5267D348C1F39DCDB8E93 /* AppGroupConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3EB4398E6F491CB1F27956C /* AppGroupConstants.swift */; };
 		F1AC843E9855B312E924F4CE /* AdultInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F64CC73B37B34EDFCC7EE0C0 /* AdultInboxView.swift */; };
-		DD0A1B2C3D4E5F6A7B8C9D0E /* CoachMarkOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0A1B2C3D4E5F6A7B8C9D0E /* CoachMarkOverlay.swift */; };
 		F1EEFB4445F0376B059368CA /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3DB5FC1E01B640B5D17352B5 /* FirebaseAuth */; };
 		F6A7B8C9D0E1F2A3B4C5D6E7 /* AddToAlbumSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F6A7B8C9D0E1F2A3B4C5D6 /* AddToAlbumSheet.swift */; };
 		FDC91C428DB1C3358724909C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E48DFE2BAB4E3A9A86437C6 /* ContentView.swift */; };
@@ -125,15 +126,16 @@
 		BF5735C42F4B81F3009C8CBD /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		BF5735C62F4B821D009C8CBD /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		BF5735C72F4B821D009C8CBD /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		BFDA07E02F4F98D4000CF940 /* StoreKitConfig.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreKitConfig.storekit; sourceTree = "<group>"; };
 		C398D898F6DFFDECDBBD9520 /* GrandmaWantsPics.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GrandmaWantsPics.entitlements; sourceTree = "<group>"; };
 		C3D4E5F6A7B8C9D0E1F2A3B4 /* AlbumListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumListView.swift; sourceTree = "<group>"; };
+		CC0A1B2C3D4E5F6A7B8C9D0E /* CoachMarkOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachMarkOverlay.swift; sourceTree = "<group>"; };
 		D02039B953E5116D53E8FF9F /* SubscriptionTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionTier.swift; sourceTree = "<group>"; };
 		E22536F429B7CBD7BB90104A /* GrandmaWantsPicsWidgetProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaWantsPicsWidgetProvider.swift; sourceTree = "<group>"; };
 		E5F6A7B8C9D0E1F2A3B4C5D6 /* AddToAlbumSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddToAlbumSheet.swift; sourceTree = "<group>"; };
 		F22E9F1741CE238208EE2580 /* GrandmaWantsPicsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaWantsPicsApp.swift; sourceTree = "<group>"; };
 		F3EB4398E6F491CB1F27956C /* AppGroupConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupConstants.swift; sourceTree = "<group>"; };
 		F42ADAA2BAE02EB258220FBF /* WidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetData.swift; sourceTree = "<group>"; };
-		CC0A1B2C3D4E5F6A7B8C9D0E /* CoachMarkOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachMarkOverlay.swift; sourceTree = "<group>"; };
 		F64CC73B37B34EDFCC7EE0C0 /* AdultInboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdultInboxView.swift; sourceTree = "<group>"; };
 		FB69B8425FCB33B39F1E7258 /* GrandmaHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaHomeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -281,6 +283,7 @@
 		DF868E16B03769017E1DAC06 = {
 			isa = PBXGroup;
 			children = (
+				BFDA07E02F4F98D4000CF940 /* StoreKitConfig.storekit */,
 				956F422C769516E84CE33AF5 /* GrandmaWantsPics */,
 				83DFC5CB8A3E06E5F3B449F6 /* GrandmaWantsPicsWidget */,
 				B95E69DE6B9AD58A1833990A /* Shared */,
@@ -396,6 +399,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				42839E42492DFD6889184B98 /* Assets.xcassets in Resources */,
+				BFDA07E12F4F98D4000CF940 /* StoreKitConfig.storekit in Resources */,
 				21CB13D1D9C7F27820E267BD /* Configuration.storekit in Resources */,
 				CA3D1D94B0D7910B2A1A0304 /* GoogleService-Info.plist in Resources */,
 			);

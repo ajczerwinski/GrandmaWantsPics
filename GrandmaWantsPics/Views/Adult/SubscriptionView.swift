@@ -38,11 +38,6 @@ struct SubscriptionView: View {
                             free: "30 days",
                             premium: "While subscribed"
                         )
-                        comparisonRow(
-                            feature: "Photo quality",
-                            free: "Full",
-                            premium: "Full"
-                        )
                     }
                     .padding()
                     .background(Color(.systemGroupedBackground))
@@ -131,7 +126,8 @@ struct SubscriptionView: View {
                 .frame(width: 70)
                 .foregroundStyle(.secondary)
             Text(premium)
-                .frame(width: 70)
+                .frame(width: 90, alignment: .trailing)
+                .multilineTextAlignment(.trailing)
                 .fontWeight(.semibold)
                 .foregroundStyle(.pink)
         }

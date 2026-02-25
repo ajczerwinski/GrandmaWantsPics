@@ -1,0 +1,107 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "5785843E",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6759213733",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "B36SK2M974",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 793745857.425565,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21948672",
+      "localizations" : [
+
+      ],
+      "name" : "GrandmaWantsPics Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "5.0",
+          "familyShareable" : true,
+          "groupNumber" : 1,
+          "internalID" : "6759630266",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Keep photos for longer and support family connection",
+              "displayName" : "Premium Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.grandmawantspics.premium.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "GrandmaWantsPics Premium Monthly",
+          "subscriptionGroupID" : "21948672",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "40.0",
+          "familyShareable" : true,
+          "groupNumber" : 2,
+          "internalID" : "6759630459",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Best value — keep photos all year",
+              "displayName" : "Premium Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.grandmawantspics.premium.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "GrandmaWantsPics Premium Yearly",
+          "subscriptionGroupID" : "21948672",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
