@@ -319,20 +319,20 @@ struct AdultInboxView: View {
                 AccountView()
                     .environmentObject(appVM)
             }
-            .overlay {
-                if appVM.showCoachMarks {
-                    CoachMarkOverlay(
-                        currentStep: $coachMarkStep,
-                        spotlightFrames: [cameraFrame, inboxFrame, gearFrame],
-                        onDismiss: {
-                            appVM.dismissCoachMarks()
-                            coachMarkStep = 0
-                        }
-                    )
-                }
-            }
             .onAppear {
                 appVM.triggerCoachMarksIfNeeded()
+            }
+        }
+        .overlay {
+            if appVM.showCoachMarks {
+                CoachMarkOverlay(
+                    currentStep: $coachMarkStep,
+                    spotlightFrames: [cameraFrame, inboxFrame, gearFrame],
+                    onDismiss: {
+                        appVM.dismissCoachMarks()
+                        coachMarkStep = 0
+                    }
+                )
             }
         }
     }

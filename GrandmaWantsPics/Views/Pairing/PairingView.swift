@@ -135,7 +135,7 @@ struct PairingView: View {
                     .foregroundStyle(.white)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(isCreating ? Color.gray : Color.blue.gradient)
+                    .background(isCreating ? AnyShapeStyle(Color.gray) : AnyShapeStyle(Color.blue.gradient))
                     .cornerRadius(16)
                 }
                 .disabled(isCreating)

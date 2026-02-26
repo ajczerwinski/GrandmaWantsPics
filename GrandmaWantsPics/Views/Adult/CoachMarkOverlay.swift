@@ -7,6 +7,14 @@ struct CoachMarkOverlay: View {
 
     private let totalSteps = 4
 
+    private var currentFrame: CGRect {
+        currentStep < spotlightFrames.count ? spotlightFrames[currentStep] : .zero
+    }
+
+    private var isLargeSpotlight: Bool {
+        currentFrame.height > UIScreen.main.bounds.height * 0.35
+    }
+
     private var steps: [(title: String, description: String)] {
         [
             (
@@ -30,10 +38,12 @@ struct CoachMarkOverlay: View {
 
     var body: some View {
         ZStack {
-            // Dimmed background with spotlight cutout
+            // Dimmed background with spotlight cutout.
+            // For large frames (e.g. full inbox area), skip the cutout so the
+            // entire screen stays dimmed instead of punching a hole through it.
             SpotlightBackground(
-                spotlightFrame: currentStep < spotlightFrames.count ? spotlightFrames[currentStep] : .zero,
-                showSpotlight: currentStep < 3
+                spotlightFrame: isLargeSpotlight ? .zero : currentFrame,
+                showSpotlight: currentStep < 3 && !isLargeSpotlight
             )
             .ignoresSafeArea()
             .onTapGesture {
@@ -60,12 +70,15 @@ struct CoachMarkOverlay: View {
     // MARK: - Spotlight Tooltip
 
     private var spotlightTooltip: some View {
-        let frame = currentStep < spotlightFrames.count ? spotlightFrames[currentStep] : .zero
+        let frame = currentFrame
         let step = steps[currentStep]
-        let showAbove = frame.midY > UIScreen.main.bounds.height / 2
+        let screenHeight = UIScreen.main.bounds.height
+        let showAbove = !isLargeSpotlight && (frame.midY > screenHeight / 2)
 
         return VStack(spacing: 0) {
-            if !showAbove {
+            if isLargeSpotlight {
+                Spacer()
+            } else if !showAbove {
                 Spacer().frame(height: frame.maxY + 16)
             }
 
@@ -100,12 +113,10 @@ struct CoachMarkOverlay: View {
             )
             .padding(.horizontal, 24)
 
-            if showAbove {
-                Spacer()
-            }
+            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: showAbove ? .bottom : .top)
-        .padding(.bottom, showAbove ? UIScreen.main.bounds.height - frame.minY + 16 : 0)
+        .padding(.bottom, showAbove ? screenHeight - frame.minY + 16 : 0)
     }
 
     // MARK: - Centered Card (Step 4)
