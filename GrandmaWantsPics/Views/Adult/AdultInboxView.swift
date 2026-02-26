@@ -28,6 +28,15 @@ struct AdultInboxView: View {
     private var hiddenRequestCount: Int {
         max(0, appVM.store.requests.count - Self.maxDisplayedRequests)
     }
+
+    private var expiryNudgeInfo: (daysLeft: Int, count: Int)? {
+        guard appVM.isFreeTier else { return nil }
+        let photos = appVM.store.allPhotos.values.flatMap { $0 }
+        let expiring = photos.filter { !$0.isExpired && $0.daysUntilExpiry <= 30 } // TODO: restore to <= 7 before release
+        guard !expiring.isEmpty else { return nil }
+        let soonest = expiring.min(by: { $0.daysUntilExpiry < $1.daysUntilExpiry })!
+        return (daysLeft: soonest.daysUntilExpiry, count: expiring.count)
+    }
     @State private var cameraFrame: CGRect = .zero
     @State private var inboxFrame: CGRect = .zero
     @State private var gearFrame: CGRect = .zero
@@ -76,26 +85,24 @@ struct AdultInboxView: View {
                             }
                         }
 
-                        if appVM.isFreeTier {
+                        if let info = expiryNudgeInfo {
                             Section {
                                 HStack(spacing: 12) {
                                     Image(systemName: "clock.badge.exclamationmark")
-                                        .foregroundStyle(.orange)
-                                        .font(.title3)
+                                        .foregroundStyle(.orange).font(.title3)
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Photos expire after 30 days")
+                                        Text(info.count == 1
+                                            ? "1 photo expires in \(info.daysLeft) day\(info.daysLeft == 1 ? "" : "s")"
+                                            : "\(info.count) photos expire in \(info.daysLeft) day\(info.daysLeft == 1 ? "" : "s")")
                                             .font(.subheadline.bold())
-                                        Text("Upgrade to Premium to keep them longer.")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
+                                        Text("Upgrade to Premium to keep them.")
+                                            .font(.caption).foregroundStyle(.secondary)
                                     }
                                     Spacer()
-                                    Button("Upgrade") {
-                                        showSubscriptionSheet = true
-                                    }
-                                    .font(.caption.bold())
-                                    .buttonStyle(.borderedProminent)
-                                    .tint(.pink)
+                                    Button("Upgrade") { showSubscriptionSheet = true }
+                                        .font(.caption.bold())
+                                        .buttonStyle(.borderedProminent)
+                                        .tint(.pink)
                                 }
                                 .padding(.vertical, 4)
                             }

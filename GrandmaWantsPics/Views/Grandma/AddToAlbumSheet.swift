@@ -3,6 +3,7 @@ import SwiftUI
 struct AddToAlbumSheet: View {
     @ObservedObject var galleryManager: GalleryDataManager
     let photoId: String
+    var onAlbumCreated: ((String) -> Void)? = nil
     @Environment(\.dismiss) var dismiss
 
     @State private var showNewAlbumAlert = false
@@ -58,6 +59,7 @@ struct AddToAlbumSheet: View {
                     let name = newAlbumName.trimmingCharacters(in: .whitespacesAndNewlines)
                     guard !name.isEmpty else { return }
                     galleryManager.createAlbum(name: name)
+                    onAlbumCreated?(name)
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {

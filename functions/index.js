@@ -13,6 +13,9 @@ const db = getFirestore();
 exports.onNewRequest = onDocumentCreated(
   "families/{familyId}/requests/{requestId}",
   async (event) => {
+    const fromRole = event.data.data().fromRole;
+    if (fromRole !== "grandma") return;
+
     const { familyId } = event.params;
 
     const connectionsSnap = await db
@@ -30,8 +33,8 @@ exports.onNewRequest = onDocumentCreated(
 
     const message = {
       notification: {
-        title: "Grandma wants pictures!",
-        body: "Tap to send some photos",
+        title: "📸 Grandma wants pictures!",
+        body: "She'd love to see this week's moments.",
       },
       data: { type: "new_request" },
       tokens,
@@ -69,8 +72,8 @@ exports.onRequestFulfilled = onDocumentUpdated(
 
     const message = {
       notification: {
-        title: "New photos!",
-        body: "Your family sent you pictures",
+        title: "🖼️ New photos from family!",
+        body: "Open to see what they shared.",
       },
       data: { type: "new_photos" },
       tokens,
@@ -78,6 +81,66 @@ exports.onRequestFulfilled = onDocumentUpdated(
 
     const response = await getMessaging().sendEachForMulticast(message);
     console.log(`Sent to ${response.successCount} of ${tokens.length} grandmas`);
+  }
+);
+
+// Batch favorites into one notification per 15-minute window
+exports.batchFavoriteNotifications = onSchedule("*/5 * * * *", async () => {
+  const snap = await db.collectionGroup("pendingFavorites").get();
+  if (snap.empty) return;
+
+  const byFamily = {};
+  snap.docs.forEach(doc => {
+    const familyId = doc.ref.parent.parent.id;
+    if (!byFamily[familyId]) byFamily[familyId] = [];
+    byFamily[familyId].push(doc);
+  });
+
+  for (const [familyId, docs] of Object.entries(byFamily)) {
+    const count = docs.length;
+    let body;
+    if (count === 1)      body = "Grandma loved a photo you shared 💛";
+    else if (count <= 5)  body = `Grandma loved ${count} photos you shared 💛`;
+    else                  body = "Grandma spent time looking through your photos today 💛";
+
+    const connectionsSnap = await db.collection("families").doc(familyId)
+      .collection("connections").where("role", "==", "adult").get();
+    const tokens = connectionsSnap.docs.map(d => d.data().fcmToken).filter(Boolean);
+
+    if (tokens.length > 0) {
+      await getMessaging().sendEachForMulticast({
+        notification: { title: "💛 Grandma loved your photos", body },
+        data: { type: "grandma_favorited" },
+        tokens,
+      });
+    }
+
+    const batch = db.batch();
+    docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+  }
+});
+
+// Immediately notify adults when Grandma creates an album
+exports.onAlbumCreated = onDocumentCreated(
+  "families/{familyId}/albumEvents/{eventId}",
+  async (event) => {
+    const { familyId } = event.params;
+    const albumName = event.data.data().albumName ?? "a new album";
+
+    const connectionsSnap = await db.collection("families").doc(familyId)
+      .collection("connections").where("role", "==", "adult").get();
+    const tokens = connectionsSnap.docs.map(d => d.data().fcmToken).filter(Boolean);
+    if (tokens.length === 0) return;
+
+    await getMessaging().sendEachForMulticast({
+      notification: {
+        title: "📸 Grandma created an album",
+        body: `She named it "${albumName}"`,
+      },
+      data: { type: "grandma_album" },
+      tokens,
+    });
   }
 );
 

@@ -9,10 +9,22 @@ struct CoachMarkOverlay: View {
 
     private var steps: [(title: String, description: String)] {
         [
-            ("Send Photos", "Tap here to send photos to Grandma anytime."),
-            ("Your Inbox", "When Grandma requests photos, they'll appear here for you to fulfill."),
-            ("Settings", "Manage your subscription and account settings here."),
-            ("Protect Your Account", "Tip: Link an email in Settings > Account so you can recover your photos if you ever reinstall.")
+            (
+                "Grandma Asks, You Answer",
+                "When Grandma wants pictures, her request appears in your inbox and you'll get a notification — no more forgetting."
+            ),
+            (
+                "Your Inbox",
+                "Fulfill Grandma's requests here, or send photos anytime. You'll feel great knowing she's seeing your family grow."
+            ),
+            (
+                "Your Account & Settings",
+                "Manage Premium, protect your account with an email, and access settings here."
+            ),
+            (
+                "You're All Set!",
+                "GrandmaWantsPics keeps the whole family connected. Grandma loves seeing the kids — and you'll love having a reason to capture those moments. 💛"
+            )
         ]
     }
 
@@ -100,9 +112,9 @@ struct CoachMarkOverlay: View {
 
     private var centeredCard: some View {
         VStack(spacing: 16) {
-            Image(systemName: "shield.lefthalf.filled")
+            Image(systemName: "heart.fill")
                 .font(.system(size: 40))
-                .foregroundStyle(.blue)
+                .foregroundStyle(.pink)
 
             Text(steps[3].title)
                 .font(.title3.bold())

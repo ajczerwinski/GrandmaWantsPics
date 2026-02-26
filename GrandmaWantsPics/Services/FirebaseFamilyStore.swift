@@ -350,6 +350,28 @@ final class FirebaseFamilyStore: FamilyStore {
             .updateData(["isBlocked": true])
     }
 
+    // MARK: - Grandma Action Events
+
+    override func recordFavoriteEvent(photoId: String) async throws {
+        guard let fid = familyId else { return }
+        try await db.collection("families").document(fid)
+            .collection("pendingFavorites")
+            .addDocument(data: [
+                "photoId": photoId,
+                "createdAt": Timestamp(date: Date())
+            ])
+    }
+
+    override func recordAlbumCreated(albumName: String) async throws {
+        guard let fid = familyId else { return }
+        try await db.collection("families").document(fid)
+            .collection("albumEvents")
+            .addDocument(data: [
+                "albumName": albumName,
+                "createdAt": Timestamp(date: Date())
+            ])
+    }
+
     // MARK: - Subscription Tier
 
     override func updateSubscriptionTier(_ tier: SubscriptionTier) async throws {

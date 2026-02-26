@@ -91,7 +91,9 @@ struct GrandmaPhotoViewer: View {
         }
         .sheet(isPresented: $showAddToAlbum) {
             if let manager = galleryManager, let photo = currentPhoto {
-                AddToAlbumSheet(galleryManager: manager, photoId: photo.id)
+                AddToAlbumSheet(galleryManager: manager, photoId: photo.id, onAlbumCreated: { albumName in
+                    Task { try? await store.recordAlbumCreated(albumName: albumName) }
+                })
             }
         }
         .alert("Report Photo", isPresented: $showReportAlert) {
@@ -182,7 +184,11 @@ struct GrandmaPhotoViewer: View {
                 label: manager.isFavorite(photo.id) ? "Favorited" : "Favorite",
                 iconColor: manager.isFavorite(photo.id) ? .pink : .white
             ) {
+                let wasAlreadyFavorite = manager.isFavorite(photo.id)
                 manager.toggleFavorite(photo.id)
+                if !wasAlreadyFavorite {
+                    Task { try? await store.recordFavoriteEvent(photoId: photo.id) }
+                }
             }
 
             actionButton(
@@ -244,7 +250,11 @@ struct GrandmaPhotoViewer: View {
                 label: manager.isFavorite(photo.id) ? "Favorited" : "Favorite",
                 iconColor: manager.isFavorite(photo.id) ? .pink : .white
             ) {
+                let wasAlreadyFavorite = manager.isFavorite(photo.id)
                 manager.toggleFavorite(photo.id)
+                if !wasAlreadyFavorite {
+                    Task { try? await store.recordFavoriteEvent(photoId: photo.id) }
+                }
             }
 
             compactActionButton(

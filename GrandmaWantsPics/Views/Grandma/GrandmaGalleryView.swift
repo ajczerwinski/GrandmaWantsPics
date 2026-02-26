@@ -169,7 +169,11 @@ struct GrandmaGalleryView: View {
                     .contextMenu {
                         if let manager = appVM.galleryDataManager {
                             Button {
+                                let wasAlreadyFavorite = manager.isFavorite(photo.id)
                                 manager.toggleFavorite(photo.id)
+                                if !wasAlreadyFavorite {
+                                    Task { try? await appVM.store.recordFavoriteEvent(photoId: photo.id) }
+                                }
                             } label: {
                                 Label(
                                     manager.isFavorite(photo.id) ? "Unfavorite" : "Favorite",
