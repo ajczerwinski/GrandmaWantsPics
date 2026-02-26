@@ -398,7 +398,7 @@ final class AppViewModel: ObservableObject {
 
     var shareMessage: String {
         guard let link = generateShareLink() else { return "" }
-        return "I set up GrandmaWantsPics for us! Tap this link to connect: \(link)"
+        return "I set up GrandmaWantsPics for us! 📸 Just tap this link on your phone — it connects your app to mine automatically so you can ask me for pictures whenever you want:\n\(link)"
     }
 
     // MARK: - Deep Link
