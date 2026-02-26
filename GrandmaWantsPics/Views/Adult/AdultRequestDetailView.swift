@@ -45,23 +45,15 @@ struct AdultRequestDetailView: View {
 
                     if appVM.isFreeTier {
                         let photos = appVM.store.photos(for: request.id)
-                        let activePhotos = photos.filter { !$0.isTrashed }
+                        let expiringPhotos = photos.filter { !$0.isTrashed && $0.daysUntilExpiry <= 7 }
                         let trashedPhotos = photos.filter { $0.isTrashed && $0.isRecoverable }
-                        if !activePhotos.isEmpty {
-                            VStack(spacing: 8) {
-                                ForEach(activePhotos) { photo in
-                                    inlineExpiryRow(photo: photo)
-                                }
-                            }
-                            .padding(.horizontal)
+                        if let soonest = expiringPhotos.min(by: { $0.daysUntilExpiry < $1.daysUntilExpiry }) {
+                            inlineExpiryRow(count: expiringPhotos.count, daysUntilExpiry: soonest.daysUntilExpiry)
+                                .padding(.horizontal)
                         }
-                        if !trashedPhotos.isEmpty {
-                            VStack(spacing: 8) {
-                                ForEach(trashedPhotos) { photo in
-                                    inlineTrashedRow(photo: photo)
-                                }
-                            }
-                            .padding(.horizontal)
+                        if let soonestTrashed = trashedPhotos.min(by: { ($0.daysUntilPurge ?? 0) < ($1.daysUntilPurge ?? 0) }) {
+                            inlineTrashedRow(count: trashedPhotos.count, daysUntilPurge: soonestTrashed.daysUntilPurge ?? 0)
+                                .padding(.horizontal)
                         }
                     }
                 } else {
@@ -143,40 +135,34 @@ struct AdultRequestDetailView: View {
         }
     }
 
-    @ViewBuilder
-    private func inlineExpiryRow(photo: Photo) -> some View {
-        let urgent = photo.daysUntilExpiry <= 7
-        HStack(spacing: 8) {
-            if urgent {
-                Image(systemName: "clock.badge.exclamationmark")
-                    .foregroundStyle(.orange)
-            }
-            Text(urgent ? "Expires in \(photo.daysUntilExpiry)d" : "Expires in \(photo.daysUntilExpiry)d")
+    private func inlineExpiryRow(count: Int, daysUntilExpiry: Int) -> some View {
+        let label = count == 1
+            ? "1 photo expires in \(daysUntilExpiry)d"
+            : "\(count) photos expire in \(daysUntilExpiry)d"
+        return HStack(spacing: 8) {
+            Image(systemName: "clock.badge.exclamationmark")
+                .foregroundStyle(.orange)
+            Text(label)
                 .font(.caption.bold())
-                .foregroundStyle(urgent ? .orange : .secondary)
-            Text("Photo from \(photo.createdAt.formatted(date: .abbreviated, time: .omitted))")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.orange)
             Spacer()
         }
         .padding(.horizontal)
         .padding(.vertical, 6)
-        .background(urgent ? Color.orange.opacity(0.1) : Color.clear)
+        .background(Color.orange.opacity(0.1))
         .cornerRadius(8)
     }
 
-    @ViewBuilder
-    private func inlineTrashedRow(photo: Photo) -> some View {
-        let days = photo.daysUntilPurge ?? 0
-        HStack(spacing: 8) {
+    private func inlineTrashedRow(count: Int, daysUntilPurge: Int) -> some View {
+        let label = count == 1
+            ? "1 photo removed · Restorable for \(daysUntilPurge)d"
+            : "\(count) photos removed · Restorable for \(daysUntilPurge)d"
+        return HStack(spacing: 8) {
             Image(systemName: "trash.circle.fill")
                 .foregroundStyle(.pink)
-            Text("Removed · Restorable for \(days)d")
+            Text(label)
                 .font(.caption.bold())
                 .foregroundStyle(.pink)
-            Text("Photo from \(photo.createdAt.formatted(date: .abbreviated, time: .omitted))")
-                .font(.caption)
-                .foregroundStyle(.secondary)
             Spacer()
         }
         .padding(.horizontal)

@@ -220,6 +220,26 @@ struct AdultInboxView: View {
                         }
 
                         #if DEBUG
+                        Divider()
+                        Menu("Test Expiration") {
+                            Button("Phase 1: 7-Day Warning") {
+                                appVM.simulateBannerPhase(.sevenDayWarning(count: 2))
+                            }
+                            Button("Phase 2: Photos Removed") {
+                                appVM.simulateBannerPhase(.removed(count: 1))
+                            }
+                            Button("Phase 3: Final Warning") {
+                                appVM.simulateBannerPhase(.finalWarning(count: 1))
+                            }
+                            Divider()
+                            Button("Inject Test Photos (Inline Labels)") {
+                                appVM.injectTestExpirationPhotos()
+                            }
+                            Button("Clear Banner Override") {
+                                appVM.debugBannerOverride = nil
+                            }
+                        }
+                        Divider()
                         Button(role: .destructive) {
                             appVM.resetAll()
                         } label: {

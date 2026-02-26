@@ -187,6 +187,9 @@ final class AppViewModel: ObservableObject {
     // MARK: - Expiration
 
     var expirationBannerState: ExpirationBannerState {
+        #if DEBUG
+        if let override = debugBannerOverride { return override }
+        #endif
         guard isFreeTier else { return .none }
         let photos = store.allPhotos.values.flatMap { $0 }
         let now = Date()
@@ -218,6 +221,12 @@ final class AppViewModel: ObservableObject {
     }
 
     func dismissExpirationBanner() {
+        #if DEBUG
+        if debugBannerOverride != nil {
+            debugBannerOverride = nil
+            return
+        }
+        #endif
         switch expirationBannerState {
         case .sevenDayWarning:
             dismissedSevenDayWarning = true
@@ -516,4 +525,35 @@ final class AppViewModel: ObservableObject {
         _ = await notificationService.requestPermission()
         await notificationService.saveFCMToken(store: store)
     }
+
+    // MARK: - DEBUG Expiration Testing
+
+    #if DEBUG
+    @Published var debugBannerOverride: ExpirationBannerState? = nil
+
+    func simulateBannerPhase(_ state: ExpirationBannerState) {
+        debugBannerOverride = state
+        clearExpirationDismissals()
+    }
+
+    /// Modifies the first available request's photos in-memory to show
+    /// inline expiry and trashed rows in AdultRequestDetailView.
+    /// The real-time listener will overwrite this on next update.
+    func injectTestExpirationPhotos() {
+        guard let requestId = store.allPhotos.keys.first,
+              var photos = store.allPhotos[requestId], !photos.isEmpty else { return }
+        // First photo: expires in 3 days (urgent orange row)
+        photos[0].expiresAt = Calendar.current.date(byAdding: .day, value: 3, to: Date())
+        // Second photo (if present): trashed, restorable for 20 days (pink row)
+        if photos.count >= 2 {
+            photos[1].status = "trashed"
+            photos[1].trashedAt = Calendar.current.date(byAdding: .day, value: -10, to: Date())
+            photos[1].purgeAt = Calendar.current.date(byAdding: .day, value: 20, to: Date())
+        }
+        // Replace the full dictionary to properly trigger @Published objectWillChange
+        var updated = store.allPhotos
+        updated[requestId] = photos
+        store.allPhotos = updated
+    }
+    #endif
 }
