@@ -9,13 +9,27 @@ struct GrandmaHomeView: View {
     @State private var isSending = false
     @State private var showDuplicateAlert = false
     @State private var showSwitchRoleAlert = false
+    @AppStorage("lastGalleryOpenedAt") private var lastGalleryOpenedInterval: Double = 0
 
     private var fulfilledPhotosExist: Bool {
         appVM.store.requests.contains(where: { $0.status == .fulfilled })
     }
 
-    private var hasPendingRequest: Bool {
-        appVM.store.requests.contains(where: { $0.status == .pending })
+    // Only block if a pending request was sent within the last 24 hours
+    private var hasRecentPendingRequest: Bool {
+        let cutoff = Date().addingTimeInterval(-24 * 60 * 60)
+        return appVM.store.requests.contains(where: { $0.status == .pending && $0.createdAt > cutoff })
+    }
+
+    private var newPhotoCount: Int {
+        let cutoff = lastGalleryOpenedInterval > 0
+            ? Date(timeIntervalSince1970: lastGalleryOpenedInterval)
+            : Date.distantPast
+        return appVM.store.requests
+            .filter { $0.status == .fulfilled && ($0.fulfilledAt ?? $0.createdAt) > cutoff }
+            .flatMap { appVM.store.photos(for: $0.id) }
+            .filter { !$0.isExpired && !$0.isBlocked }
+            .count
     }
 
     var body: some View {
@@ -24,7 +38,7 @@ struct GrandmaHomeView: View {
                 Spacer()
 
                 Button {
-                    if hasPendingRequest {
+                    if hasRecentPendingRequest {
                         showDuplicateAlert = true
                     } else {
                         Task { await sendRequest() }
@@ -66,16 +80,30 @@ struct GrandmaHomeView: View {
 
                 if fulfilledPhotosExist {
                     Button {
+                        lastGalleryOpenedInterval = Date().timeIntervalSince1970
                         showGallery = true
                     } label: {
                         Label("View Photos", systemImage: "photo.on.rectangle")
-                            .font(.title2)
-                            .padding()
+                            .font(.title)
+                            .fontWeight(.semibold)
+                            .padding(.vertical, 20)
                             .frame(maxWidth: .infinity)
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(16)
+                            .background(Color.blue.opacity(0.15))
+                            .cornerRadius(20)
                     }
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, 32)
+                    .overlay(alignment: .topTrailing) {
+                        if newPhotoCount > 0 {
+                            Text("\(newPhotoCount) new")
+                                .font(.caption.bold())
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(.red)
+                                .clipShape(Capsule())
+                                .offset(x: -40, y: -10)
+                        }
+                    }
                 }
             }
             .padding()
@@ -94,6 +122,10 @@ struct GrandmaHomeView: View {
 
                         Link(destination: URL(string: "https://grandmawantspics.com/privacy")!) {
                             Label("Privacy Policy", systemImage: "doc.text")
+                        }
+
+                        Link(destination: URL(string: "https://grandmawantspics.com/csam")!) {
+                            Label("Child Safety Policy", systemImage: "hand.raised")
                         }
 
                         #if DEBUG
@@ -118,6 +150,7 @@ struct GrandmaHomeView: View {
             }
             .onChange(of: appVM.pendingDeepAction) { _, action in
                 if action == .openGallery {
+                    lastGalleryOpenedInterval = Date().timeIntervalSince1970
                     showGallery = true
                     appVM.pendingDeepAction = nil
                 }

@@ -213,6 +213,18 @@ struct AdultInboxView: View {
 
                         Divider()
 
+                        Divider()
+
+                        Link(destination: URL(string: "https://grandmawantspics.com/privacy")!) {
+                            Label("Privacy Policy", systemImage: "doc.text")
+                        }
+
+                        Link(destination: URL(string: "https://grandmawantspics.com/csam")!) {
+                            Label("Child Safety Policy", systemImage: "hand.raised")
+                        }
+
+                        Divider()
+
                         Button {
                             showSwitchRoleAlert = true
                         } label: {
