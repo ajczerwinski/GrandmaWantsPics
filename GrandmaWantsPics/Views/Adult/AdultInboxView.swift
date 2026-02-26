@@ -32,7 +32,7 @@ struct AdultInboxView: View {
     private var expiryNudgeInfo: (daysLeft: Int, count: Int)? {
         guard appVM.isFreeTier else { return nil }
         let photos = appVM.store.allPhotos.values.flatMap { $0 }
-        let expiring = photos.filter { !$0.isExpired && $0.daysUntilExpiry <= 30 } // TODO: restore to <= 7 before release
+        let expiring = photos.filter { !$0.isExpired && $0.daysUntilExpiry <= 7 }
         guard !expiring.isEmpty else { return nil }
         let soonest = expiring.min(by: { $0.daysUntilExpiry < $1.daysUntilExpiry })!
         return (daysLeft: soonest.daysUntilExpiry, count: expiring.count)
