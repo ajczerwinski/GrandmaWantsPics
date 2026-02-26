@@ -8,6 +8,7 @@ struct AdultRequestDetailView: View {
 
     @State private var selectedItems: [PhotosPickerItem] = []
     @State private var selectedImages: [UIImage] = []
+    @State private var isLoadingPhotos = false
     @State private var isSending = false
     @State private var errorMessage: String?
     @State private var didSend = false
@@ -72,11 +73,17 @@ struct AdultRequestDetailView: View {
                     }
                     .padding(.horizontal, 32)
                     .onChange(of: selectedItems) {
+                        isLoadingPhotos = !selectedItems.isEmpty
                         Task { await loadSelectedPhotos() }
                     }
 
+                    if isLoadingPhotos {
+                        ProgressView("Loading photos...")
+                            .padding(.top, 20)
+                    }
+
                     // Preview selected
-                    if !selectedImages.isEmpty {
+                    if !selectedImages.isEmpty && !isLoadingPhotos {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(Array(selectedImages.enumerated()), id: \.offset) { _, img in
@@ -172,6 +179,7 @@ struct AdultRequestDetailView: View {
     }
 
     private func loadSelectedPhotos() async {
+        isLoadingPhotos = true
         var images: [UIImage] = []
         for item in selectedItems {
             if let data = try? await item.loadTransferable(type: Data.self),
@@ -180,6 +188,7 @@ struct AdultRequestDetailView: View {
             }
         }
         selectedImages = images
+        isLoadingPhotos = false
     }
 
     private func downsample(_ image: UIImage, maxDimension: CGFloat = 2048) -> UIImage {
