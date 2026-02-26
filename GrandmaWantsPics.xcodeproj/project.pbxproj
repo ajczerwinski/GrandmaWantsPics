@@ -25,6 +25,7 @@
 		4B8C9D0E1F2A3B4C5D6E7F8A /* ImageCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A7B8C9D0E1F2A3B4C5D6E7F /* ImageCacheService.swift */; };
 		501DC5DD6F0CFC7BB758035E /* GrandmaWantsPicsWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BF4DDD7FBF2F2273F96491F9 /* GrandmaWantsPicsWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5C4BD5D5312B2D37F751E143 /* AdultRequestDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B4A5A4C19A182616DBEA31 /* AdultRequestDetailView.swift */; };
+		EB1234567890ABCDEF012346 /* ExpirationBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1234567890ABCDEF012345 /* ExpirationBannerView.swift */; };
 		5D3AE7F8B21C4D5A6E9F0B12 /* AdultSendPhotosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D3AE7F8B21C4D5A6E9F0B13 /* AdultSendPhotosView.swift */; };
 		66DB0D49E77442D9C30A5585 /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42ADAA2BAE02EB258220FBF /* WidgetData.swift */; };
 		6CDDBB74DE4401BB27F089F2 /* GrandmaHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB69B8425FCB33B39F1E7258 /* GrandmaHomeView.swift */; };
@@ -101,6 +102,7 @@
 		3A7B8C9D0E1F2A3B4C5D6E7F /* ImageCacheService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheService.swift; sourceTree = "<group>"; };
 		4273579D309D34C253AAFD3C /* AppRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRole.swift; sourceTree = "<group>"; };
 		46B4A5A4C19A182616DBEA31 /* AdultRequestDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdultRequestDetailView.swift; sourceTree = "<group>"; };
+		EB1234567890ABCDEF012345 /* ExpirationBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpirationBannerView.swift; sourceTree = "<group>"; };
 		49B682290847D37D5F166656 /* FirebaseFamilyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseFamilyStore.swift; sourceTree = "<group>"; };
 		50602CAD4F604BD5F4795F87 /* GrandmaWantsPicsWidgetViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandmaWantsPicsWidgetViews.swift; sourceTree = "<group>"; };
 		58E51BFC8F22D7A42B56CAF9 /* SubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionView.swift; sourceTree = "<group>"; };
@@ -189,6 +191,7 @@
 				5D3AE7F8B21C4D5A6E9F0B13 /* AdultSendPhotosView.swift */,
 				CC0A1B2C3D4E5F6A7B8C9D0E /* CoachMarkOverlay.swift */,
 				58E51BFC8F22D7A42B56CAF9 /* SubscriptionView.swift */,
+				EB1234567890ABCDEF012345 /* ExpirationBannerView.swift */,
 			);
 			path = Adult;
 			sourceTree = "<group>";
@@ -417,6 +420,7 @@
 				F1AC843E9855B312E924F4CE /* AdultInboxView.swift in Sources */,
 				DD0A1B2C3D4E5F6A7B8C9D0E /* CoachMarkOverlay.swift in Sources */,
 				5C4BD5D5312B2D37F751E143 /* AdultRequestDetailView.swift in Sources */,
+				EB1234567890ABCDEF012346 /* ExpirationBannerView.swift in Sources */,
 				5D3AE7F8B21C4D5A6E9F0B12 /* AdultSendPhotosView.swift in Sources */,
 				D4E5F6A7B8C9D0E1F2A3B4C5 /* AlbumListView.swift in Sources */,
 				B0C3034B1537D54B9276C3C5 /* AppConfig.swift in Sources */,

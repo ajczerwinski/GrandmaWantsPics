@@ -1,7 +1,7 @@
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { initializeApp } = require("firebase-admin/app");
-const { getFirestore } = require("firebase-admin/firestore");
+const { getFirestore, Timestamp } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
 const { getStorage } = require("firebase-admin/storage");
 
@@ -144,14 +144,13 @@ exports.onAlbumCreated = onDocumentCreated(
   }
 );
 
-// Daily cleanup of expired photos for free-tier families
-exports.cleanupExpiredPhotos = onSchedule("every day 02:00", async () => {
-  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const bucket = getStorage().bucket();
+// Daily soft-delete of expired photos for free-tier families (runs at 02:00)
+exports.softDeleteExpiredPhotos = onSchedule("every day 02:00", async () => {
+  const now = new Date();
+  const cutoff30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
   let familiesScanned = 0;
-  let photosDeleted = 0;
-  let errors = 0;
+  let photosTrashed = 0;
 
   const familiesSnap = await db
     .collection("families")
@@ -168,24 +167,106 @@ exports.cleanupExpiredPhotos = onSchedule("every day 02:00", async () => {
       .get();
 
     for (const requestDoc of requestsSnap.docs) {
-      const expiredPhotosSnap = await db
+      const photosSnap = await db
         .collection("families")
         .doc(familyDoc.id)
         .collection("requests")
         .doc(requestDoc.id)
         .collection("photos")
-        .where("createdAt", "<=", cutoff)
         .get();
 
-      if (expiredPhotosSnap.empty) continue;
+      if (photosSnap.empty) continue;
 
       let batch = db.batch();
       let batchCount = 0;
 
-      for (const photoDoc of expiredPhotosSnap.docs) {
-        const { storagePath } = photoDoc.data();
+      for (const photoDoc of photosSnap.docs) {
+        const data = photoDoc.data();
 
-        // Delete from Storage
+        // Skip already-trashed photos
+        if (data.status === "trashed") continue;
+
+        // Determine effective expiry: use expiresAt field or fall back to createdAt + 30d
+        let effectiveExpiry;
+        if (data.expiresAt) {
+          effectiveExpiry = data.expiresAt.toDate();
+        } else if (data.createdAt) {
+          effectiveExpiry = new Date(data.createdAt.toDate().getTime() + 30 * 24 * 60 * 60 * 1000);
+        } else {
+          effectiveExpiry = cutoff30d;
+        }
+
+        if (effectiveExpiry > now) continue;
+
+        const purgeAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        batch.update(photoDoc.ref, {
+          status: "trashed",
+          trashedAt: Timestamp.fromDate(now),
+          purgeAt: Timestamp.fromDate(purgeAt),
+        });
+        batchCount++;
+        photosTrashed++;
+
+        if (batchCount === 500) {
+          await batch.commit();
+          batch = db.batch();
+          batchCount = 0;
+        }
+      }
+
+      if (batchCount > 0) {
+        await batch.commit();
+      }
+    }
+  }
+
+  console.log(
+    `Soft-delete complete: ${familiesScanned} families scanned, ` +
+    `${photosTrashed} photos trashed`
+  );
+});
+
+// Daily hard-delete of trashed photos past their purgeAt date (runs at 03:00)
+exports.purgeDeletedPhotos = onSchedule("every day 03:00", async () => {
+  const now = new Date();
+  const bucket = getStorage().bucket();
+
+  let photosDeleted = 0;
+  let errors = 0;
+
+  // Query all families (not just free) to clean up orphaned trashed docs
+  const familiesSnap = await db.collection("families").get();
+
+  for (const familyDoc of familiesSnap.docs) {
+    const requestsSnap = await db
+      .collection("families")
+      .doc(familyDoc.id)
+      .collection("requests")
+      .get();
+
+    for (const requestDoc of requestsSnap.docs) {
+      const trashedSnap = await db
+        .collection("families")
+        .doc(familyDoc.id)
+        .collection("requests")
+        .doc(requestDoc.id)
+        .collection("photos")
+        .where("status", "==", "trashed")
+        .get();
+
+      if (trashedSnap.empty) continue;
+
+      let batch = db.batch();
+      let batchCount = 0;
+
+      for (const photoDoc of trashedSnap.docs) {
+        const data = photoDoc.data();
+
+        if (!data.purgeAt) continue;
+        const purgeAt = data.purgeAt.toDate();
+        if (purgeAt > now) continue;
+
+        const { storagePath } = data;
         if (storagePath) {
           try {
             await bucket.file(storagePath).delete();
@@ -201,7 +282,6 @@ exports.cleanupExpiredPhotos = onSchedule("every day 02:00", async () => {
         batchCount++;
         photosDeleted++;
 
-        // Firestore batches are limited to 500 operations
         if (batchCount === 500) {
           await batch.commit();
           batch = db.batch();
@@ -216,7 +296,6 @@ exports.cleanupExpiredPhotos = onSchedule("every day 02:00", async () => {
   }
 
   console.log(
-    `Photo TTL cleanup complete: ${familiesScanned} families scanned, ` +
-    `${photosDeleted} photos deleted, ${errors} errors`
+    `Purge complete: ${photosDeleted} photos permanently deleted, ${errors} errors`
   );
 });

@@ -230,6 +230,8 @@ struct SubscriptionView: View {
             let success = try await manager.purchase(product)
             if success {
                 await appVM.syncSubscriptionTier()
+                try? await appVM.store.restoreTrashedPhotos()
+                appVM.clearExpirationDismissals()
             }
         } catch {
             errorMessage = "Purchase failed: \(error.localizedDescription)"

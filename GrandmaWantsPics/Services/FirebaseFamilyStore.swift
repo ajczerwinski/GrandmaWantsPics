@@ -166,7 +166,8 @@ final class FirebaseFamilyStore: FamilyStore {
             try await requestRef.collection("photos").document(photoId).setData([
                 "createdAt": Timestamp(date: Date()),
                 "createdByUserId": uid,
-                "storagePath": storagePath
+                "storagePath": storagePath,
+                "status": "active"
             ])
         }
     }
@@ -202,7 +203,8 @@ final class FirebaseFamilyStore: FamilyStore {
             try await requestRef.collection("photos").document(photoId).setData([
                 "createdAt": Timestamp(date: Date()),
                 "createdByUserId": uid,
-                "storagePath": storagePath
+                "storagePath": storagePath,
+                "status": "active"
             ])
         }
 
@@ -279,7 +281,11 @@ final class FirebaseFamilyStore: FamilyStore {
                         createdAt: (d["createdAt"] as? Timestamp)?.dateValue() ?? Date(),
                         createdByUserId: d["createdByUserId"] as? String ?? "",
                         storagePath: d["storagePath"] as? String ?? "",
-                        isBlocked: d["isBlocked"] as? Bool ?? false
+                        isBlocked: d["isBlocked"] as? Bool ?? false,
+                        status: d["status"] as? String ?? "active",
+                        expiresAt: (d["expiresAt"] as? Timestamp)?.dateValue(),
+                        trashedAt: (d["trashedAt"] as? Timestamp)?.dateValue(),
+                        purgeAt: (d["purgeAt"] as? Timestamp)?.dateValue()
                     )
                 }
 
@@ -389,6 +395,34 @@ final class FirebaseFamilyStore: FamilyStore {
         try await db.collection("families").document(fid)
             .collection("connections").document(uid)
             .updateData(["fcmToken": token])
+    }
+
+    // MARK: - Photo Restore
+
+    override func restoreTrashedPhotos() async throws {
+        guard let fid = familyId else { return }
+        let now = Date()
+        let requestsSnap = try await db.collection("families").document(fid)
+            .collection("requests").getDocuments()
+        for requestDoc in requestsSnap.documents {
+            let photosSnap = try await db.collection("families").document(fid)
+                .collection("requests").document(requestDoc.documentID)
+                .collection("photos").whereField("status", isEqualTo: "trashed")
+                .getDocuments()
+            guard !photosSnap.documents.isEmpty else { continue }
+            let batch = db.batch()
+            for photoDoc in photosSnap.documents {
+                if let purgeAt = (photoDoc.data()["purgeAt"] as? Timestamp)?.dateValue(),
+                   purgeAt > now {
+                    batch.updateData([
+                        "status": "active",
+                        "trashedAt": FieldValue.delete(),
+                        "purgeAt": FieldValue.delete()
+                    ], forDocument: photoDoc.reference)
+                }
+            }
+            try await batch.commit()
+        }
     }
 
     // MARK: - Errors

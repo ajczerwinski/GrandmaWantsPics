@@ -45,25 +45,20 @@ struct AdultRequestDetailView: View {
 
                     if appVM.isFreeTier {
                         let photos = appVM.store.photos(for: request.id)
-                        let expiringPhotos = photos.filter { $0.daysUntilExpiry <= 7 && !$0.isExpired }
-                        if !expiringPhotos.isEmpty {
+                        let activePhotos = photos.filter { !$0.isTrashed }
+                        let trashedPhotos = photos.filter { $0.isTrashed && $0.isRecoverable }
+                        if !activePhotos.isEmpty {
                             VStack(spacing: 8) {
-                                ForEach(expiringPhotos) { photo in
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "clock")
-                                            .foregroundStyle(.orange)
-                                        Text("\(photo.daysUntilExpiry)d left")
-                                            .font(.caption.bold())
-                                            .foregroundStyle(.orange)
-                                        Text("Photo from \(photo.createdAt.formatted(date: .abbreviated, time: .omitted))")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                        Spacer()
-                                    }
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 6)
-                                    .background(Color.orange.opacity(0.1))
-                                    .cornerRadius(8)
+                                ForEach(activePhotos) { photo in
+                                    inlineExpiryRow(photo: photo)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        if !trashedPhotos.isEmpty {
+                            VStack(spacing: 8) {
+                                ForEach(trashedPhotos) { photo in
+                                    inlineTrashedRow(photo: photo)
                                 }
                             }
                             .padding(.horizontal)
@@ -146,6 +141,48 @@ struct AdultRequestDetailView: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private func inlineExpiryRow(photo: Photo) -> some View {
+        let urgent = photo.daysUntilExpiry <= 7
+        HStack(spacing: 8) {
+            if urgent {
+                Image(systemName: "clock.badge.exclamationmark")
+                    .foregroundStyle(.orange)
+            }
+            Text(urgent ? "Expires in \(photo.daysUntilExpiry)d" : "Expires in \(photo.daysUntilExpiry)d")
+                .font(.caption.bold())
+                .foregroundStyle(urgent ? .orange : .secondary)
+            Text("Photo from \(photo.createdAt.formatted(date: .abbreviated, time: .omitted))")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(urgent ? Color.orange.opacity(0.1) : Color.clear)
+        .cornerRadius(8)
+    }
+
+    @ViewBuilder
+    private func inlineTrashedRow(photo: Photo) -> some View {
+        let days = photo.daysUntilPurge ?? 0
+        HStack(spacing: 8) {
+            Image(systemName: "trash.circle.fill")
+                .foregroundStyle(.pink)
+            Text("Removed · Restorable for \(days)d")
+                .font(.caption.bold())
+                .foregroundStyle(.pink)
+            Text("Photo from \(photo.createdAt.formatted(date: .abbreviated, time: .omitted))")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(Color.pink.opacity(0.1))
+        .cornerRadius(8)
     }
 
     private func loadSelectedPhotos() async {

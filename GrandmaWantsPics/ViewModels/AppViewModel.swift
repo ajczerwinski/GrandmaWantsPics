@@ -3,6 +3,13 @@ import SwiftUI
 import UIKit
 import Combine
 
+enum ExpirationBannerState {
+    case none
+    case sevenDayWarning(count: Int)
+    case removed(count: Int)
+    case finalWarning(count: Int)
+}
+
 @MainActor
 final class AppViewModel: ObservableObject {
 
@@ -20,6 +27,9 @@ final class AppViewModel: ObservableObject {
     @Published var showAccountNudge: Bool = false
     @Published var showCoachMarks: Bool = false
     @Published var pendingDeepAction: DeepAction?
+    @Published var dismissedSevenDayWarning: Bool = UserDefaults.standard.bool(forKey: "dismissedSevenDayWarning")
+    @Published var dismissedRemovedBanner:   Bool = UserDefaults.standard.bool(forKey: "dismissedRemovedBanner")
+    @Published var dismissedFinalWarning:    Bool = UserDefaults.standard.bool(forKey: "dismissedFinalWarning")
 
     let store: FamilyStore
     let authService = AuthService()
@@ -163,15 +173,73 @@ final class AppViewModel: ObservableObject {
 
     func performStartupCleanupIfNeeded() async {
         guard isFreeTier else { return }
+        guard !AppConfig.useFirebase else {
+            imageCacheService?.evictExpired(photos: store.allPhotos.values.flatMap { $0 })
+            return
+        }
         let cleanup = PhotoTTLCleanupService(store: store)
         await cleanup.deleteExpiredPhotos()
-
-        // Evict cached images for photos that no longer exist
-        let remainingPhotos = store.allPhotos.values.flatMap { $0 }
-        imageCacheService?.evictExpired(photos: remainingPhotos)
+        imageCacheService?.evictExpired(photos: store.allPhotos.values.flatMap { $0 })
     }
 
     // MARK: - Subscription
+
+    // MARK: - Expiration
+
+    var expirationBannerState: ExpirationBannerState {
+        guard isFreeTier else { return .none }
+        let photos = store.allPhotos.values.flatMap { $0 }
+        let now = Date()
+
+        // Phase 3 — highest priority
+        let finalWarn = photos.filter {
+            guard let p = $0.purgeAt else { return false }
+            return $0.isTrashed && p > now && p <= now.addingTimeInterval(3 * 86400)
+        }
+        if !finalWarn.isEmpty && !dismissedFinalWarning { return .finalWarning(count: finalWarn.count) }
+
+        // Phase 2
+        let removed = photos.filter {
+            guard let p = $0.purgeAt else { return false }
+            return $0.isTrashed && p > now.addingTimeInterval(3 * 86400)
+        }
+        if !removed.isEmpty && !dismissedRemovedBanner { return .removed(count: removed.count) }
+
+        // Phase 1
+        let expiring = photos.filter { !$0.isTrashed && !$0.isExpired && $0.daysUntilExpiry <= 7 }
+        if !expiring.isEmpty && !dismissedSevenDayWarning { return .sevenDayWarning(count: expiring.count) }
+
+        return .none
+    }
+
+    var expirationBannerVisible: Bool {
+        if case .none = expirationBannerState { return false }
+        return true
+    }
+
+    func dismissExpirationBanner() {
+        switch expirationBannerState {
+        case .sevenDayWarning:
+            dismissedSevenDayWarning = true
+            UserDefaults.standard.set(true, forKey: "dismissedSevenDayWarning")
+        case .removed:
+            dismissedRemovedBanner = true
+            UserDefaults.standard.set(true, forKey: "dismissedRemovedBanner")
+        case .finalWarning:
+            dismissedFinalWarning = true
+            UserDefaults.standard.set(true, forKey: "dismissedFinalWarning")
+        case .none: break
+        }
+    }
+
+    func clearExpirationDismissals() {
+        dismissedSevenDayWarning = false
+        dismissedRemovedBanner   = false
+        dismissedFinalWarning    = false
+        UserDefaults.standard.removeObject(forKey: "dismissedSevenDayWarning")
+        UserDefaults.standard.removeObject(forKey: "dismissedRemovedBanner")
+        UserDefaults.standard.removeObject(forKey: "dismissedFinalWarning")
+    }
 
     func syncSubscriptionTier() async {
         do {
@@ -414,6 +482,7 @@ final class AppViewModel: ObservableObject {
         showAccountNudge = false
         galleryDataManager = nil
         imageCacheService?.clearAll()
+        clearExpirationDismissals()
         UserDefaults.standard.removeObject(forKey: roleKey)
         UserDefaults.standard.removeObject(forKey: pairedKey)
         UserDefaults.standard.removeObject(forKey: pairingCodeKey)

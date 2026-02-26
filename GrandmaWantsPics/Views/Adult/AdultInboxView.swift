@@ -29,14 +29,6 @@ struct AdultInboxView: View {
         max(0, appVM.store.requests.count - Self.maxDisplayedRequests)
     }
 
-    private var expiryNudgeInfo: (daysLeft: Int, count: Int)? {
-        guard appVM.isFreeTier else { return nil }
-        let photos = appVM.store.allPhotos.values.flatMap { $0 }
-        let expiring = photos.filter { !$0.isExpired && $0.daysUntilExpiry <= 7 }
-        guard !expiring.isEmpty else { return nil }
-        let soonest = expiring.min(by: { $0.daysUntilExpiry < $1.daysUntilExpiry })!
-        return (daysLeft: soonest.daysUntilExpiry, count: expiring.count)
-    }
     @State private var cameraFrame: CGRect = .zero
     @State private var inboxFrame: CGRect = .zero
     @State private var gearFrame: CGRect = .zero
@@ -85,26 +77,9 @@ struct AdultInboxView: View {
                             }
                         }
 
-                        if let info = expiryNudgeInfo {
+                        if appVM.expirationBannerVisible {
                             Section {
-                                HStack(spacing: 12) {
-                                    Image(systemName: "clock.badge.exclamationmark")
-                                        .foregroundStyle(.orange).font(.title3)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(info.count == 1
-                                            ? "1 photo expires in \(info.daysLeft) day\(info.daysLeft == 1 ? "" : "s")"
-                                            : "\(info.count) photos expire in \(info.daysLeft) day\(info.daysLeft == 1 ? "" : "s")")
-                                            .font(.subheadline.bold())
-                                        Text("Upgrade to Premium to keep them.")
-                                            .font(.caption).foregroundStyle(.secondary)
-                                    }
-                                    Spacer()
-                                    Button("Upgrade") { showSubscriptionSheet = true }
-                                        .font(.caption.bold())
-                                        .buttonStyle(.borderedProminent)
-                                        .tint(.pink)
-                                }
-                                .padding(.vertical, 4)
+                                ExpirationBannerView(onPrimaryAction: { showSubscriptionSheet = true })
                             }
                         }
 
