@@ -25,9 +25,9 @@ struct SubscriptionView: View {
         return "Photos don't expire while you're subscribed."
     }
 
-    /// Monthly product first, then yearly.
+    /// Yearly product first, then monthly.
     private var sortedProducts: [Product] {
-        manager.products.sorted { a, _ in a.id == SubscriptionManager.monthlyProductId }
+        manager.products.sorted { a, _ in a.id == SubscriptionManager.yearlyProductId }
     }
 
     var body: some View {
