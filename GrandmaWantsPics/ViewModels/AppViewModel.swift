@@ -456,7 +456,7 @@ final class AppViewModel: ObservableObject {
 
         // Validate timestamp (must be < 30 minutes old)
         let age = Int(Date().timeIntervalSince1970) - payload.ts
-        guard age >= 0, age < 30 * 60 else { return false }
+        guard age >= 0, age < 24 * 60 * 60 else { return false }
 
         // Validate code is a UUID
         guard UUID(uuidString: payload.code) != nil else { return false }

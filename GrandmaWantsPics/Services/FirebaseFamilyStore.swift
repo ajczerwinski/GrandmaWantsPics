@@ -28,7 +28,7 @@ final class FirebaseFamilyStore: FamilyStore {
 
         let code = UUID().uuidString
         let now = Date()
-        let expiresAt = now.addingTimeInterval(15 * 60)
+        let expiresAt = now.addingTimeInterval(24 * 60 * 60)
         let familyRef = db.collection("families").document()
         let family = Family(
             id: familyRef.documentID,

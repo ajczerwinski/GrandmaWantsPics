@@ -124,11 +124,20 @@ struct GrandmaPhotoViewer: View {
                 Text("\(currentIndex + 1) of \(photos.count)")
                     .font(.headline)
                     .foregroundStyle(.white.opacity(0.7))
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 4)
 
-                if let manager = galleryManager, let photo = currentPhoto {
-                    portraitActionBar(manager: manager, photo: photo)
-                        .padding(.bottom, 40)
+                if let photo = currentPhoto {
+                    Text("Sent \(photo.createdAt.formatted(date: .long, time: .omitted))")
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.55))
+                        .padding(.bottom, 10)
+
+                    if let manager = galleryManager {
+                        portraitActionBar(manager: manager, photo: photo)
+                            .padding(.bottom, 40)
+                    } else {
+                        Spacer().frame(height: 40)
+                    }
                 } else {
                     Spacer().frame(height: 40)
                 }
@@ -244,6 +253,11 @@ struct GrandmaPhotoViewer: View {
     private func landscapeActionBar(manager: GalleryDataManager, photo: Photo) -> some View {
         VStack(spacing: 12) {
             Spacer()
+
+            Text(photo.createdAt.formatted(date: .abbreviated, time: .omitted))
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.55))
+                .multilineTextAlignment(.center)
 
             compactActionButton(
                 icon: manager.isFavorite(photo.id) ? "heart.fill" : "heart",

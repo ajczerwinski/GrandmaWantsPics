@@ -9,6 +9,7 @@ struct GrandmaHomeView: View {
     @State private var isSending = false
     @State private var showDuplicateAlert = false
     @State private var showSwitchRoleAlert = false
+    @State private var showLeaveAlert = false
     @AppStorage("lastGalleryOpenedAt") private var lastGalleryOpenedInterval: Double = 0
 
     private var fulfilledPhotosExist: Bool {
@@ -118,6 +119,12 @@ struct GrandmaHomeView: View {
                             Label("Switch to Family", systemImage: "arrow.left.arrow.right")
                         }
 
+                        Button(role: .destructive) {
+                            showLeaveAlert = true
+                        } label: {
+                            Label("Leave Family", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
+
                         Divider()
 
                         Link(destination: URL(string: "https://grandmawantspics.com/privacy")!) {
@@ -162,6 +169,14 @@ struct GrandmaHomeView: View {
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text("This will change the app to Family mode. You can always switch back.")
+            }
+            .alert("Leave Family?", isPresented: $showLeaveAlert) {
+                Button("Leave Family", role: .destructive) {
+                    appVM.resetAll()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This will disconnect your app from this family. To reconnect, ask your family for a new invite link.")
             }
             .alert("Request Already Pending", isPresented: $showDuplicateAlert) {
                 Button("Send Anyway") {

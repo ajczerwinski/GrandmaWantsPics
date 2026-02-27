@@ -9,6 +9,11 @@ private struct CoachMarkFrameKey: PreferenceKey {
     }
 }
 
+private enum InboxFilter: String, CaseIterable {
+    case active = "Active"
+    case history = "History"
+}
+
 struct AdultInboxView: View {
     @EnvironmentObject var appVM: AppViewModel
     @State private var selectedRequest: PhotoRequest?
@@ -16,17 +21,28 @@ struct AdultInboxView: View {
     @State private var showSendPhotosSheet = false
     @State private var showAccountSheet = false
     @State private var showSwitchRoleAlert = false
+    @State private var showLeaveAlert = false
     @State private var requestToDelete: PhotoRequest?
     @State private var coachMarkStep = 0
+    @State private var inboxFilter: InboxFilter = .active
 
     private static let maxDisplayedRequests = 20
 
+    private var filteredRequests: [PhotoRequest] {
+        switch inboxFilter {
+        case .active:
+            return appVM.store.requests.filter { $0.status == .pending }
+        case .history:
+            return appVM.store.requests.filter { $0.status == .fulfilled }
+        }
+    }
+
     private var displayedRequests: [PhotoRequest] {
-        Array(appVM.store.requests.prefix(Self.maxDisplayedRequests))
+        Array(filteredRequests.prefix(Self.maxDisplayedRequests))
     }
 
     private var hiddenRequestCount: Int {
-        max(0, appVM.store.requests.count - Self.maxDisplayedRequests)
+        max(0, filteredRequests.count - Self.maxDisplayedRequests)
     }
 
     @State private var cameraFrame: CGRect = .zero
@@ -44,6 +60,16 @@ struct AdultInboxView: View {
                     )
                 } else {
                     List {
+                        Section {
+                            Picker("Filter", selection: $inboxFilter) {
+                                ForEach(InboxFilter.allCases, id: \.self) { filter in
+                                    Text(filter.rawValue).tag(filter)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                        }
                         if appVM.showAccountNudge && !appVM.authService.isLinked {
                             Section {
                                 HStack(spacing: 12) {
@@ -80,6 +106,19 @@ struct AdultInboxView: View {
                         if appVM.expirationBannerVisible {
                             Section {
                                 ExpirationBannerView(onPrimaryAction: { showSubscriptionSheet = true })
+                            }
+                        }
+
+                        if displayedRequests.isEmpty {
+                            Section {
+                                ContentUnavailableView(
+                                    inboxFilter == .active ? "No pending requests" : "No history yet",
+                                    systemImage: inboxFilter == .active ? "tray" : "clock",
+                                    description: Text(inboxFilter == .active
+                                        ? "When Grandma taps her button, her request will appear here."
+                                        : "Fulfilled requests will appear here once you've sent photos.")
+                                )
+                                .listRowBackground(Color.clear)
                             }
                         }
 
@@ -231,6 +270,12 @@ struct AdultInboxView: View {
                             Label("Switch to Grandma", systemImage: "arrow.left.arrow.right")
                         }
 
+                        Button(role: .destructive) {
+                            showLeaveAlert = true
+                        } label: {
+                            Label("Leave Family", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
+
                         #if DEBUG
                         Divider()
                         Menu("Test Expiration") {
@@ -298,6 +343,14 @@ struct AdultInboxView: View {
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text("This will change the app to Grandma mode. You can always switch back.")
+            }
+            .alert("Leave Family?", isPresented: $showLeaveAlert) {
+                Button("Leave Family", role: .destructive) {
+                    appVM.resetAll()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This will disconnect your app from this family. To reconnect, you'll need a new invite link.")
             }
             .sheet(item: $selectedRequest) { request in
                 AdultRequestDetailView(request: request)

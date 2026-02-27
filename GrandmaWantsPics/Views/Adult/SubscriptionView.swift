@@ -69,7 +69,7 @@ struct SubscriptionView: View {
 
                         comparisonRow(
                             feature: "Photo storage",
-                            free: "Expires after\n30 days",
+                            free: "30-day\ngrace period",
                             premium: "No expiration\nwhile active"
                         )
                         Divider().padding(.horizontal, 16)
@@ -136,8 +136,8 @@ struct SubscriptionView: View {
                     // MARK: Fine Print
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Subscription renews automatically unless canceled.")
-                        Text("Photos remain available while subscribed. If your subscription ends, new expirations follow the Free plan.")
-                        Text("Recently removed photos can be restored within 30 days.")
+                        Text("Photos remain available while subscribed. If your subscription ends, photos enter a 30-day grace period before being permanently removed.")
+                        Text("Photos in the grace period can be restored by upgrading within 30 days.")
                     }
                     .font(.caption)
                     .foregroundStyle(.secondary)
