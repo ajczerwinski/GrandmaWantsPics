@@ -11,6 +11,7 @@ struct GrandmaPhotoViewer: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.verticalSizeClass) var verticalSizeClass
     @State private var currentIndex: Int = 0
+    @State private var showControls: Bool = true
     @State private var showAddToAlbum = false
     @State private var showSaveConfirmation = false
     @State private var showReportAlert = false
@@ -89,6 +90,11 @@ struct GrandmaPhotoViewer: View {
                 currentIndex = idx
             }
         }
+        .onChange(of: currentIndex) { _, _ in
+            withAnimation(.easeInOut(duration: 0.25)) {
+                showControls = true
+            }
+        }
         .sheet(isPresented: $showAddToAlbum) {
             if let manager = galleryManager, let photo = currentPhoto {
                 AddToAlbumSheet(galleryManager: manager, photoId: photo.id, onAlbumCreated: { albumName in
@@ -118,29 +124,37 @@ struct GrandmaPhotoViewer: View {
         ZStack {
             photoTabView
 
-            VStack {
-                Spacer()
+            if showControls {
+                VStack {
+                    Spacer()
 
-                Text("\(currentIndex + 1) of \(photos.count)")
-                    .font(.headline)
-                    .foregroundStyle(.white.opacity(0.7))
-                    .padding(.bottom, 4)
+                    Text("\(currentIndex + 1) of \(photos.count)")
+                        .font(.headline)
+                        .foregroundStyle(.white.opacity(0.7))
+                        .padding(.bottom, 4)
 
-                if let photo = currentPhoto {
-                    Text("Sent \(photo.createdAt.formatted(date: .long, time: .omitted))")
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.55))
-                        .padding(.bottom, 10)
+                    if let photo = currentPhoto {
+                        Text("Sent \(photo.createdAt.formatted(date: .long, time: .omitted))")
+                            .font(.subheadline)
+                            .foregroundStyle(.white.opacity(0.55))
+                            .padding(.bottom, 10)
 
-                    if let manager = galleryManager {
-                        portraitActionBar(manager: manager, photo: photo)
-                            .padding(.bottom, 40)
+                        if let manager = galleryManager {
+                            portraitActionBar(manager: manager, photo: photo)
+                                .padding(.bottom, 40)
+                        } else {
+                            Spacer().frame(height: 40)
+                        }
                     } else {
                         Spacer().frame(height: 40)
                     }
-                } else {
-                    Spacer().frame(height: 40)
                 }
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
+        }
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                showControls.toggle()
             }
         }
     }
@@ -152,17 +166,26 @@ struct GrandmaPhotoViewer: View {
             ZStack {
                 photoTabView
 
-                VStack {
-                    Spacer()
-                    Text("\(currentIndex + 1) of \(photos.count)")
-                        .font(.headline)
-                        .foregroundStyle(.white.opacity(0.7))
-                        .padding(.bottom, 12)
+                if showControls {
+                    VStack {
+                        Spacer()
+                        Text("\(currentIndex + 1) of \(photos.count)")
+                            .font(.headline)
+                            .foregroundStyle(.white.opacity(0.7))
+                            .padding(.bottom, 12)
+                    }
+                    .transition(.opacity)
+                }
+            }
+            .onTapGesture {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showControls.toggle()
                 }
             }
 
-            if let manager = galleryManager, let photo = currentPhoto {
+            if showControls, let manager = galleryManager, let photo = currentPhoto {
                 landscapeActionBar(manager: manager, photo: photo)
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
     }
