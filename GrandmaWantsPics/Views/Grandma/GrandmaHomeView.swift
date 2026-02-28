@@ -1,5 +1,12 @@
 import SwiftUI
 
+private struct GrandmaButtonFrameKey: PreferenceKey {
+    static var defaultValue: CGRect = .zero
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+        value = nextValue()
+    }
+}
+
 struct GrandmaHomeView: View {
     @EnvironmentObject var appVM: AppViewModel
     @State private var showConfirmation = false
@@ -10,6 +17,8 @@ struct GrandmaHomeView: View {
     @State private var showDuplicateAlert = false
     @State private var showSwitchRoleAlert = false
     @State private var showLeaveAlert = false
+    @State private var coachMarkStep = 0
+    @State private var mainButtonFrame: CGRect = .zero
     @AppStorage("lastGalleryOpenedAt") private var lastGalleryOpenedInterval: Double = 0
 
     private var fulfilledPhotosExist: Bool {
@@ -62,6 +71,14 @@ struct GrandmaHomeView: View {
                 .buttonStyle(.plain)
                 .disabled(isSending)
                 .sensoryFeedback(.success, trigger: showConfirmation)
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.preference(
+                            key: GrandmaButtonFrameKey.self,
+                            value: geo.frame(in: .global)
+                        )
+                    }
+                )
 
                 if showConfirmation {
                     Text("Request sent! Your family\nwill send photos soon.")
@@ -151,6 +168,12 @@ struct GrandmaHomeView: View {
                     }
                 }
             }
+            .onPreferenceChange(GrandmaButtonFrameKey.self) { frame in
+                mainButtonFrame = frame
+            }
+            .onAppear {
+                appVM.triggerGrandmaCoachMarksIfNeeded()
+            }
             .sheet(isPresented: $showGallery) {
                 GrandmaGalleryView()
                     .environmentObject(appVM)
@@ -185,6 +208,18 @@ struct GrandmaHomeView: View {
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text("You already have a pending request. Send another one?")
+            }
+        }
+        .overlay {
+            if appVM.showGrandmaCoachMarks {
+                GrandmaCoachMarkOverlay(
+                    currentStep: $coachMarkStep,
+                    buttonFrame: mainButtonFrame,
+                    onDismiss: {
+                        appVM.dismissGrandmaCoachMarks()
+                        coachMarkStep = 0
+                    }
+                )
             }
         }
     }

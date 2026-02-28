@@ -360,6 +360,10 @@ struct AdultInboxView: View {
                 AdultSendPhotosView()
                     .environmentObject(appVM)
             }
+            .fullScreenCover(isPresented: $appVM.showFirstPhotosPrompt) {
+                FirstPhotosPromptView()
+                    .environmentObject(appVM)
+            }
             .sheet(isPresented: $showSubscriptionSheet) {
                 SubscriptionView()
                     .environmentObject(appVM)

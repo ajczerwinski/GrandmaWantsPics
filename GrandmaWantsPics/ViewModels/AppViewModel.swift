@@ -26,6 +26,8 @@ final class AppViewModel: ObservableObject {
     @Published var recoveryError: String?
     @Published var showAccountNudge: Bool = false
     @Published var showCoachMarks: Bool = false
+    @Published var showFirstPhotosPrompt: Bool = false
+    @Published var showGrandmaCoachMarks: Bool = false
     @Published var pendingDeepAction: DeepAction?
     @Published var dismissedSevenDayWarning: Bool = UserDefaults.standard.bool(forKey: "dismissedSevenDayWarning")
     @Published var dismissedRemovedBanner:   Bool = UserDefaults.standard.bool(forKey: "dismissedRemovedBanner")
@@ -43,6 +45,8 @@ final class AppViewModel: ObservableObject {
     private let pairingCodeKey = "pendingPairingCode"
     private let hasSeenAccountNudgeKey = "hasSeenAccountNudge"
     private let hasSeenCoachMarksKey = "hasSeenCoachMarks"
+    private let hasSeenFirstPhotosPromptKey = "hasSeenFirstPhotosPrompt"
+    private let hasSeenGrandmaCoachMarksKey = "hasSeenGrandmaCoachMarks"
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Subscription Tier
@@ -296,6 +300,12 @@ final class AppViewModel: ObservableObject {
         ensureGalleryDataManager()
         syncWidgetData()
         Task { await setupNotifications() }
+
+        // Prompt new adult users to send photos before Grandma opens the app
+        if currentRole == .adult,
+           !UserDefaults.standard.bool(forKey: hasSeenFirstPhotosPromptKey) {
+            showFirstPhotosPrompt = true
+        }
     }
 
     func joinFamily(code: String, asRole: String = "grandma") async -> Bool {
@@ -368,6 +378,7 @@ final class AppViewModel: ObservableObject {
 
     func triggerCoachMarksIfNeeded() {
         guard !UserDefaults.standard.bool(forKey: hasSeenCoachMarksKey) else { return }
+        guard !showFirstPhotosPrompt else { return }
         showCoachMarks = true
     }
 
@@ -378,6 +389,27 @@ final class AppViewModel: ObservableObject {
 
     func resetCoachMarks() {
         UserDefaults.standard.removeObject(forKey: hasSeenCoachMarksKey)
+    }
+
+    // MARK: - First Photos Prompt
+
+    func dismissFirstPhotosPrompt() {
+        showFirstPhotosPrompt = false
+        UserDefaults.standard.set(true, forKey: hasSeenFirstPhotosPromptKey)
+        // Chain into the adult coach marks now that the prompt is gone
+        triggerCoachMarksIfNeeded()
+    }
+
+    // MARK: - Grandma Coach Marks
+
+    func triggerGrandmaCoachMarksIfNeeded() {
+        guard !UserDefaults.standard.bool(forKey: hasSeenGrandmaCoachMarksKey) else { return }
+        showGrandmaCoachMarks = true
+    }
+
+    func dismissGrandmaCoachMarks() {
+        showGrandmaCoachMarks = false
+        UserDefaults.standard.set(true, forKey: hasSeenGrandmaCoachMarksKey)
     }
 
     // MARK: - Share Link
@@ -489,6 +521,8 @@ final class AppViewModel: ObservableObject {
         showSignIn = false
         isRecoveringAccount = false
         showAccountNudge = false
+        showFirstPhotosPrompt = false
+        showGrandmaCoachMarks = false
         galleryDataManager = nil
         imageCacheService?.clearAll()
         clearExpirationDismissals()
@@ -498,6 +532,8 @@ final class AppViewModel: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "firebase_familyId")
         UserDefaults.standard.removeObject(forKey: hasSeenAccountNudgeKey)
         UserDefaults.standard.removeObject(forKey: hasSeenCoachMarksKey)
+        UserDefaults.standard.removeObject(forKey: hasSeenFirstPhotosPromptKey)
+        UserDefaults.standard.removeObject(forKey: hasSeenGrandmaCoachMarksKey)
         WidgetDataWriter.write(.empty)
     }
 

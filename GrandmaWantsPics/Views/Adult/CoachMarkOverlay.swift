@@ -179,7 +179,7 @@ struct CoachMarkOverlay: View {
 
 // MARK: - Spotlight Background Shape
 
-private struct SpotlightBackground: View {
+struct SpotlightBackground: View {
     let spotlightFrame: CGRect
     let showSpotlight: Bool
 
@@ -190,7 +190,7 @@ private struct SpotlightBackground: View {
     }
 }
 
-private struct SpotlightShape: Shape {
+struct SpotlightShape: Shape {
     let spotlightFrame: CGRect
     let showSpotlight: Bool
 
