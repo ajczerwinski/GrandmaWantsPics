@@ -31,6 +31,17 @@ struct GrandmaHomeView: View {
         return appVM.store.requests.contains(where: { $0.status == .pending && $0.createdAt > cutoff })
     }
 
+    private var recentPhotos: [Photo] {
+        Array(
+            appVM.store.requests
+                .filter { $0.status == .fulfilled }
+                .sorted { ($0.fulfilledAt ?? $0.createdAt) > ($1.fulfilledAt ?? $1.createdAt) }
+                .flatMap { appVM.store.photos(for: $0.id) }
+                .filter { !$0.isExpired && !$0.isBlocked }
+                .prefix(3)
+        )
+    }
+
     private var newPhotoCount: Int {
         let cutoff = lastGalleryOpenedInterval > 0
             ? Date(timeIntervalSince1970: lastGalleryOpenedInterval)
@@ -101,27 +112,43 @@ struct GrandmaHomeView: View {
                         lastGalleryOpenedInterval = Date().timeIntervalSince1970
                         showGallery = true
                     } label: {
-                        Label("View Photos", systemImage: "photo.on.rectangle")
-                            .font(.title)
-                            .fontWeight(.semibold)
-                            .padding(.vertical, 20)
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue.opacity(0.15))
-                            .cornerRadius(20)
-                    }
-                    .padding(.horizontal, 32)
-                    .overlay(alignment: .topTrailing) {
-                        if newPhotoCount > 0 {
-                            Text("\(newPhotoCount) new")
-                                .font(.caption.bold())
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(.red)
-                                .clipShape(Capsule())
-                                .offset(x: -40, y: -10)
+                        VStack(spacing: 0) {
+                            HStack(spacing: 4) {
+                                ForEach(recentPhotos) { photo in
+                                    RecentPhotoThumbnail(
+                                        photo: photo,
+                                        cacheService: appVM.imageCacheService,
+                                        store: appVM.store
+                                    )
+                                    .frame(maxWidth: .infinity, minHeight: 120)
+                                }
+                            }
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+
+                            HStack {
+                                Label("View Photos", systemImage: "photo.on.rectangle")
+                                    .font(.title2.bold())
+
+                                if newPhotoCount > 0 {
+                                    Text("\(newPhotoCount) new")
+                                        .font(.caption.bold())
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(.red)
+                                        .clipShape(Capsule())
+                                }
+                            }
+                            .padding(.top, 12)
+                            .padding(.bottom, 12)
                         }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
+                        .background(Color.blue.opacity(0.12))
+                        .cornerRadius(20)
                     }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 24)
                 }
             }
             .padding()
@@ -221,6 +248,37 @@ struct GrandmaHomeView: View {
                     }
                 )
             }
+        }
+    }
+
+    // MARK: - Recent Photo Thumbnail
+
+    private struct RecentPhotoThumbnail: View {
+        let photo: Photo
+        let cacheService: ImageCacheService?
+        let store: FamilyStore
+
+        @State private var image: UIImage?
+
+        var body: some View {
+            Color.gray.opacity(0.15)
+                .overlay {
+                    if let img = image {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        ProgressView()
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .task(id: photo.id) {
+                    if let cacheService {
+                        image = await cacheService.loadImage(for: photo, thumbnail: true, using: store)
+                    } else if let data = try? await store.loadImageData(for: photo) {
+                        image = UIImage(data: data)
+                    }
+                }
         }
     }
 
