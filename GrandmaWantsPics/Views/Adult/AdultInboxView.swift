@@ -49,6 +49,140 @@ struct AdultInboxView: View {
     @State private var inboxFrame: CGRect = .zero
     @State private var gearFrame: CGRect = .zero
 
+    @ViewBuilder private var filterPickerSection: some View {
+        Section {
+            Picker("Filter", selection: $inboxFilter) {
+                ForEach(InboxFilter.allCases, id: \.self) { filter in
+                    Text(filter.rawValue).tag(filter)
+                }
+            }
+            .pickerStyle(.segmented)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+        }
+    }
+
+    @ViewBuilder private var accountNudgeSection: some View {
+        if appVM.showAccountNudge && !appVM.authService.isLinked {
+            Section {
+                HStack(spacing: 12) {
+                    Image(systemName: "shield.fill")
+                        .foregroundStyle(.blue)
+                        .font(.title3)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Protect your photos")
+                            .font(.subheadline.bold())
+                        Text("Link an email so you never lose them.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button("Link Account") {
+                        showAccountSheet = true
+                    }
+                    .font(.caption.bold())
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                    Button {
+                        appVM.dismissAccountNudge()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.vertical, 4)
+            }
+        }
+    }
+
+    @ViewBuilder private var expirationSection: some View {
+        if appVM.expirationBannerVisible {
+            Section {
+                ExpirationBannerView(onPrimaryAction: { showSubscriptionSheet = true })
+            }
+        }
+    }
+
+    @ViewBuilder private var requestsSection: some View {
+        if displayedRequests.isEmpty {
+            Section {
+                ContentUnavailableView(
+                    inboxFilter == .active ? "No pending requests" : "No history yet",
+                    systemImage: inboxFilter == .active ? "tray" : "clock",
+                    description: Text(inboxFilter == .active
+                        ? "When Grandma taps her button, her request will appear here."
+                        : "Fulfilled requests will appear here once you've sent photos.")
+                )
+                .listRowBackground(Color.clear)
+            }
+        }
+        Section {
+            ForEach(displayedRequests) { request in
+                Button {
+                    selectedRequest = request
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(request.fromRole == "adult" ? "Sent Photos" : "Photo Request")
+                                .font(.headline)
+                            Text(request.createdAt.formatted(date: .abbreviated, time: .shortened))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        StatusBadge(status: request.status)
+                    }
+                    .padding(.vertical, 4)
+                }
+                .buttonStyle(.plain)
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    if request.status == .pending {
+                        Button(role: .destructive) {
+                            Task { try? await appVM.store.deleteRequest(request) }
+                        } label: {
+                            Label("Dismiss", systemImage: "xmark")
+                        }
+                    } else {
+                        Button(role: .destructive) {
+                            requestToDelete = request
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                }
+                .contextMenu {
+                    if request.status == .pending {
+                        Button(role: .destructive) {
+                            Task { try? await appVM.store.deleteRequest(request) }
+                        } label: {
+                            Label("Dismiss Request", systemImage: "xmark.circle")
+                        }
+                    } else {
+                        Button {
+                            selectedRequest = request
+                        } label: {
+                            Label("Open", systemImage: "eye")
+                        }
+                        Button(role: .destructive) {
+                            requestToDelete = request
+                        } label: {
+                            Label("Delete Request & Photos", systemImage: "trash")
+                        }
+                    }
+                }
+            }
+            if hiddenRequestCount > 0 {
+                Text("\(hiddenRequestCount) older request\(hiddenRequestCount == 1 ? "" : "s") not shown")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .listRowBackground(Color.clear)
+            }
+        }
+    }
+
     var body: some View {
         NavigationStack {
             Group {
@@ -60,134 +194,10 @@ struct AdultInboxView: View {
                     )
                 } else {
                     List {
-                        Section {
-                            Picker("Filter", selection: $inboxFilter) {
-                                ForEach(InboxFilter.allCases, id: \.self) { filter in
-                                    Text(filter.rawValue).tag(filter)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
-                        }
-                        if appVM.showAccountNudge && !appVM.authService.isLinked {
-                            Section {
-                                HStack(spacing: 12) {
-                                    Image(systemName: "shield.fill")
-                                        .foregroundStyle(.blue)
-                                        .font(.title3)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Protect your photos")
-                                            .font(.subheadline.bold())
-                                        Text("Link an email so you never lose them.")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    Spacer()
-                                    Button("Link Account") {
-                                        showAccountSheet = true
-                                    }
-                                    .font(.caption.bold())
-                                    .buttonStyle(.borderedProminent)
-                                    .tint(.blue)
-                                    Button {
-                                        appVM.dismissAccountNudge()
-                                    } label: {
-                                        Image(systemName: "xmark")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                                .padding(.vertical, 4)
-                            }
-                        }
-
-                        if appVM.expirationBannerVisible {
-                            Section {
-                                ExpirationBannerView(onPrimaryAction: { showSubscriptionSheet = true })
-                            }
-                        }
-
-                        if displayedRequests.isEmpty {
-                            Section {
-                                ContentUnavailableView(
-                                    inboxFilter == .active ? "No pending requests" : "No history yet",
-                                    systemImage: inboxFilter == .active ? "tray" : "clock",
-                                    description: Text(inboxFilter == .active
-                                        ? "When Grandma taps her button, her request will appear here."
-                                        : "Fulfilled requests will appear here once you've sent photos.")
-                                )
-                                .listRowBackground(Color.clear)
-                            }
-                        }
-
-                        Section {
-                            ForEach(displayedRequests) { request in
-                                Button {
-                                    selectedRequest = request
-                                } label: {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(request.fromRole == "adult" ? "Sent Photos" : "Photo Request")
-                                                .font(.headline)
-                                            Text(request.createdAt.formatted(date: .abbreviated, time: .shortened))
-                                                .font(.subheadline)
-                                                .foregroundStyle(.secondary)
-                                        }
-
-                                        Spacer()
-
-                                        StatusBadge(status: request.status)
-                                    }
-                                    .padding(.vertical, 4)
-                                }
-                                .buttonStyle(.plain)
-                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                    if request.status == .pending {
-                                        Button(role: .destructive) {
-                                            Task { try? await appVM.store.deleteRequest(request) }
-                                        } label: {
-                                            Label("Dismiss", systemImage: "xmark")
-                                        }
-                                    } else {
-                                        Button(role: .destructive) {
-                                            requestToDelete = request
-                                        } label: {
-                                            Label("Delete", systemImage: "trash")
-                                        }
-                                    }
-                                }
-                                .contextMenu {
-                                    if request.status == .pending {
-                                        Button(role: .destructive) {
-                                            Task { try? await appVM.store.deleteRequest(request) }
-                                        } label: {
-                                            Label("Dismiss Request", systemImage: "xmark.circle")
-                                        }
-                                    } else {
-                                        Button {
-                                            selectedRequest = request
-                                        } label: {
-                                            Label("Open", systemImage: "eye")
-                                        }
-                                        Button(role: .destructive) {
-                                            requestToDelete = request
-                                        } label: {
-                                            Label("Delete Request & Photos", systemImage: "trash")
-                                        }
-                                    }
-                                }
-                            }
-
-                            if hiddenRequestCount > 0 {
-                                Text("\(hiddenRequestCount) older request\(hiddenRequestCount == 1 ? "" : "s") not shown")
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .listRowBackground(Color.clear)
-                            }
-                        }
+                        filterPickerSection
+                        accountNudgeSection
+                        expirationSection
+                        requestsSection
                     }
                 }
             }

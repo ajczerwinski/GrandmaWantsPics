@@ -24,6 +24,10 @@ targets:
         com.apple.security.application-groups:
           - group.com.grandmawantspics.shared
         aps-environment: development
+        com.apple.developer.associated-domains:
+          - applinks:grandmawantspics.com
+        com.apple.developer.applesignin:
+          - Default
     sources:
       - path: GrandmaWantsPics
         excludes:
@@ -36,6 +40,7 @@ targets:
           UIApplicationSupportsMultipleScenes: false
         UILaunchScreen: {}
         NSPhotoLibraryUsageDescription: "We need access to your photo library to send pictures to Grandma."
+        NSPhotoLibraryAddUsageDescription: "Save photos from your family to your Camera Roll."
         CFBundleURLTypes:
           - CFBundleURLSchemes:
               - grandmawantspics
@@ -79,6 +84,8 @@ targets:
       properties:
         com.apple.security.application-groups:
           - group.com.grandmawantspics.shared
+        com.apple.developer.associated-domains:
+          - applinks:grandmawantspics.com
     sources:
       - path: GrandmaWantsPicsWidget
       - path: Shared
